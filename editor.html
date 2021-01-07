@@ -1,0 +1,85 @@
+<html>
+  <head>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1"
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="node_modules/croppie/croppie.css" />
+    <link rel="stylesheet" href="editor.css" />
+    <meta name="viewport" content="width=device-width" />
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-ygbV9kiqUc6oa4msXn9868pTtWMgiQaeYH7/t7LECLbyPA2x65Kgf80OJFdroafW"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://code.jquery.com/jquery-3.5.1.min.js"
+      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+      crossorigin="anonymous"
+    ></script>
+    <script src="node_modules/croppie/croppie.js"></script>
+  </head>
+  <body class="bg-light">
+      <div id="editorApp" >
+    <nav class="navbar navbar-dark bg-dark text-end">
+      <div class="container-fluid">
+        <input
+          id="imageInput"
+          type="file"
+          onchange="setImage(event)"
+        />
+        <button class="btn btn-success" onclick="document.getElementById('imageInput').click();" v-bind:class="{ hide: editing }">Add a Photo!</button>
+        <span id="imageCounter" class="text-right badge bg-secondary" v-bind:class="{ hide: editing }">{{ Object.keys(croppedImages).length }}/{{ numRequired }}</span>
+        <span v-bind:class="{ hide: !editing }">
+        <button id="cancelBtn" class="btn btn-secondary" onclick="cancelImage()">Cancel</button>
+        </span>
+        <button
+        id="rotateBtn"
+        onclick="$('#viewer').croppie('rotate', 90)"
+        class="btn btn-light"
+        v-bind:class="{ hide: !editing }"
+      >
+        Rotate
+      </button>
+      </div>
+    </nav>
+    <div v-bind:class="{ view: editing }" id="editor">
+    <img id="viewer" src="test1.jpg" width="300" height="auto" />
+      <div id="uploadMsg">Upload a File to Start Cropping</div>
+    </div>
+    <div id="imagesDiv" class="text-center"  v-bind:class="{ hide: editing }">
+        <div v-for="(card, key) in croppedImages" class="thumbnail text-center" :data-id="key">
+            <img :src="card" class="card-img memory-card" />
+            <button type="button" class="btn-close" aria-label="Close" @click="deleteImage(key)"></button>
+        </div>
+    </div>
+    <nav
+      id="bottomActionBar"
+      class="navbar fixed-bottom navbar-dark bg-dark text-end"
+    >
+      <div class="container-fluid">
+        <button class="btn btn-outline-danger" v-on:click="clearPhotos" v-bind:class="{ hidden: editing }">
+          Clear Photos
+        </button>
+        <span>
+          <button
+            id="nextButton"
+            class="btn btn-outline-success"
+            data-bs-toggle="modal"
+            data-bs-target="#morePhotosModal"
+            v-bind:class="{ hide: editing }"
+          >
+            Next
+          </button>
+          <button class="btn btn-info" v-on:click="saveImages" v-bind:class="{ hide: editing }">Save</button>
+          <button id="addBtn" class="btn btn-success" onclick="addImage()" v-bind:class="{ hide: !editing }">Add</button>
+        </span>
+      </div>
+    </nav>
+</div>
+    <script src="editor.js"></script>
+  </body>
+</html>

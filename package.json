@@ -1,0 +1,16 @@
+{
+  "name": "lynda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "memory.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "croppie": "^2.6.5",
+    "jquery": "^3.5.1",
+    "vue": "^2.6.12"
+  }
+}
