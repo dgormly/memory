@@ -34,7 +34,7 @@ var editorApp = new Vue({
 });
 
 Vue.component('card', {
-  props: ['cardid', "imgurl", "loading", "uploaded"],
+  props: ['cardid', "imgurl", "uploaded"],
   template: `<div :data-id=cardid class='text-center'>
             <img :src=imgurl class='card-img memory-card' />
             <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: !uploaded }" type='button' aria-label='Close' class='btn-close'></button>
@@ -42,8 +42,17 @@ Vue.component('card', {
             </div>`,
   components: {
     BeatLoader
+  },
+  async created() {
+    const res = await fetch("http://localhost:3000/upload");
+    var upload = await res.json();
+    if (upload.success) {
+      // TODO UPLOAD IMAGE LOGIC
+      this.uploaded = true;
+    }
   }
 });
+
 
 function clearPhotos() {
   var answer = confirm("Are you sure you want to clear all photos?");
@@ -54,19 +63,6 @@ function clearPhotos() {
   }
 }
 
-function saveImages() {
-  // TODO send photos to server.
-  // Create a new user
-  fetch('http://127.0.0.1:80/upload', {
-  headers: { "Content-Type": "application/json; charset=utf-8" },
-  method: 'POST',
-  body: JSON.stringify({
-    username: 'Elon Musk',
-    email: 'elonmusk@gmail.com',
-  })
-}).then(response => response.json())
-.then(data=>console.log(data))
-}
 
 function setImage(event) {
   editorApp.editing = true;
