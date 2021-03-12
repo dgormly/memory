@@ -1,15 +1,12 @@
-const localstorage = window.localStorage;
 
+var BeatLoader = VueSpinner.BeatLoader
 var croppedImages = {};
 var originalImages = {};
 var currentImage = null;
-var countID =
-  window.localStorage.getItem("counter") !== null
-    ? window.localStorage.getItem("counter")
-    : 0;
+var countID = 0;
 var imageCounter = document.getElementById("imageCounter");
 const defaultImageUrl = "";
-const numRequired = 32;
+const numRequired = 1;
 
 let croppieSettings = {
   viewport: { height: 425, width: 300, type: "square" },
@@ -18,11 +15,7 @@ let croppieSettings = {
   enableExif: true,
 };
 
-let keys = window.localStorage.getItem("keys") !== null ? window.localStorage.getItem("keys").split(',') : [];
 let cropped = {};
-for (var i = 0; i < keys.length; i++) {
-  cropped[keys[i]] = window.localStorage.getItem(keys[i]);
-}
 
 var editorApp = new Vue({
   el: "#editorApp",
@@ -35,6 +28,21 @@ var editorApp = new Vue({
     saveImages: saveImages,
     clearPhotos: clearPhotos,
   },
+  components: {
+    BeatLoader
+  }
+});
+
+Vue.component('card', {
+  props: ['cardid', "imgurl", "loading", "uploaded"],
+  template: `<div :data-id=cardid class='text-center'>
+            <img :src=imgurl class='card-img memory-card' />
+            <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: !uploaded }" type='button' aria-label='Close' class='btn-close'></button>
+            <beat-loader :loading=!uploaded style="margin: 8px;"></beat-loader>
+            </div>`,
+  components: {
+    BeatLoader
+  }
 });
 
 function clearPhotos() {
@@ -47,23 +55,17 @@ function clearPhotos() {
 }
 
 function saveImages() {
-  try {
-    window.localStorage.clear();
-
-    let keys = Object.keys(editorApp.croppedImages);
-    let values = Object.values(editorApp.croppedImages);
-
-    window.localStorage.setItem("keys", keys);
-    
-    for (var i = 0; i < keys.length; i++) {
-      window.localStorage.setItem(keys[i], values[i]);
-    }
-    
-    window.localStorage.setItem("counter", countID);
-    alert("Images have been successfully saved.");
-  } catch (err) {
-    alert("Memory full. Unable to save progress.");
-  }
+  // TODO send photos to server.
+  // Create a new user
+  fetch('http://127.0.0.1:80/upload', {
+  headers: { "Content-Type": "application/json; charset=utf-8" },
+  method: 'POST',
+  body: JSON.stringify({
+    username: 'Elon Musk',
+    email: 'elonmusk@gmail.com',
+  })
+}).then(response => response.json())
+.then(data=>console.log(data))
 }
 
 function setImage(event) {

@@ -10,7 +10,9 @@
   "license": "ISC",
   "dependencies": {
     "croppie": "^2.6.5",
+    "express": "^4.17.1",
     "jquery": "^3.5.1",
-    "vue": "^2.6.12"
+    "vue": "^2.6.12",
+    "vue-spinner": "^1.0.4"
   }
 }
