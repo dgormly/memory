@@ -48,9 +48,6 @@
           </span>
           <span
             id="uploadText"
-            v-bind:class="{ 
-              hide: !editing && Object.keys(croppedImages).length === numRequired,
-            }"
             class="text-center"
             >{{ titleText }}</span
           >
@@ -59,7 +56,7 @@
             id="imageCounter"
             class="text-right badge bg-secondary"
             v-bind:class="{ 
-              hide: editing
+              hide: editing || Object.keys(croppedImages).length === numRequired
             }"
             >{{ Object.keys(croppedImages).length }}/{{ numRequired }}</span
           >

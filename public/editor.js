@@ -94,6 +94,8 @@ function clearPhotos() {
       // TODO CLEAR IMAGE LOGIC
     }
     */
+
+    titleText = nextText;
   }
 }
 
@@ -177,4 +179,11 @@ function addImage() {
 function deleteImage(id) {
   delete editorApp.croppedImages[id];
   editorApp.$forceUpdate();
+
+  if (Object.keys(croppedImages).length == numRequired) {
+    titleText = nextText;
+  } else {
+    titleText = uploadText;
+  }
+
 }
