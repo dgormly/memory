@@ -32,28 +32,11 @@
             class="btn btn-success"
             onclick="document.getElementById('imageInput').click();"
             v-bind:class="{ 
-              hidden: !editing && Object.keys(croppedImages).length === numRequired,
+              hide: editing || Object.keys(croppedImages).length === numRequired,
             }"
           >
             Add a Photo!
           </button>
-          <span
-            id="uploadText"
-            v-bind:class="{ 
-              hide: !editing && Object.keys(croppedImages).length === numRequired,
-            }"
-            class="text-center"
-            >Upload a memory!</span
-          >
-
-          <span
-            id="imageCounter"
-            class="text-right badge bg-secondary"
-            v-bind:class="{ 
-              hide: !editing && Object.keys(croppedImages).length === numRequired,
-            }"
-            >{{ Object.keys(croppedImages).length }}/{{ numRequired }}</span
-          >
           <span v-bind:class="{ hide: !editing }">
             <button
               id="cancelBtn"
@@ -63,12 +46,28 @@
               Cancel
             </button>
           </span>
+          <span
+            id="uploadText"
+            v-bind:class="{ 
+              hide: !editing && Object.keys(croppedImages).length === numRequired,
+            }"
+            class="text-center"
+            >{{ titleText }}</span
+          >
 
+          <span
+            id="imageCounter"
+            class="text-right badge bg-secondary"
+            v-bind:class="{ 
+              hide: editing
+            }"
+            >{{ Object.keys(croppedImages).length }}/{{ numRequired }}</span
+          >
           <button
             id="rotateBtn"
             onclick="$('#viewer').croppie('rotate', 90)"
             class="btn btn-light"
-            v-bind:class="{ hide: !editing }"
+            v-bind:class="{ hide: !editing}"
           >
             Rotate
           </button>

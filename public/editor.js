@@ -8,6 +8,13 @@ var imageCounter = document.getElementById("imageCounter"); // The image counter
 const defaultImageUrl = ""; // The default image URL used for the background image.
 const numRequired = 2; // The number of images required to be uploaded for the user to be able to select next.
 
+/* Title Text shown at the top of the Vue App */
+let uploadText = "Upload a Memory!";
+let cropText = "Crop the Photo to Fit on the Card"
+let nextText = "Press Next to Select a Card Background";
+let backgroundText = "Select a Card Background"
+let titleText = uploadText; // Changing this variable changes the text in the app.
+
 /* Server HTTP request configs. TODO: Change over to the correct urls */
 const uploadURL =  "http://localhost:3000/upload";
 const deleteImageURL = "http://localhost:3000/delete";
@@ -26,7 +33,7 @@ let croppieSettings = {
 
 let cropped = {};
 
-/* The main editor Vue App */.
+/* The main editor Vue App */
 var editorApp = new Vue({
   el: "#editorApp",
   data: {
@@ -110,7 +117,8 @@ function nextPressed() {
  */
 function setImage(event) {
   editorApp.editing = true;
-  var reader = new FileReader();
+  titleText = cropText;
+  var reader = new FileReader(); // Allow the user to select a photo that they would like to crop.
   reader.onload = function (e) {
     document.getElementById("viewer").src = e.currentTarget.result;
     currentImage = e.currentTarget.result;
@@ -126,6 +134,12 @@ function setImage(event) {
 function cancelImage() {
   $("#viewer").croppie("destroy");
   editorApp.editing = false;
+  
+  if (Object.keys(croppedImages).length === numRequired) {
+    titleText = nextText;
+  } else {
+    titleText = uploadText;
+  }
 }
 
 /**
@@ -146,6 +160,12 @@ function addImage() {
       editorApp.croppedImages[countID] = imageBase64;
       countID++;
       $("#viewer").croppie("destroy");
+
+      if (Object.keys(croppedImages).length === numRequired) {
+        titleText = nextText;
+      } else {
+        titleText = uploadText;
+      }
     });
 }
 
