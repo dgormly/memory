@@ -46,6 +46,10 @@ border: 1px solid #aaa;
 display: none;
 }
 
+#uploadText {
+  color:white;
+}
+
 #viewer:not(.view) {
   display:none;
 }

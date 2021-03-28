@@ -35,10 +35,14 @@ var editorApp = new Vue({
 
 Vue.component('card', {
   props: ['cardid', "imgurl", "uploaded"],
+  data:  function () {
+    return {
+      imageUploaded: true
+  }},
   template: `<div :data-id=cardid class='text-center'>
             <img :src=imgurl class='card-img memory-card' />
-            <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: !uploaded }" type='button' aria-label='Close' class='btn-close'></button>
-            <beat-loader :loading=!uploaded style="margin: 8px;"></beat-loader>
+            <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: this.imageUploaded }" type='button' aria-label='Close' class='btn-close'></button>
+            <beat-loader :loading=this.imageUploaded style="margin: 8px;"></beat-loader>
             </div>`,
   components: {
     BeatLoader
@@ -48,7 +52,7 @@ Vue.component('card', {
     var upload = await res.json();
     if (upload.success) {
       // TODO UPLOAD IMAGE LOGIC
-      this.uploaded = true;
+      this.imageUploaded = !upload.success;
     }
   }
 });
@@ -60,7 +64,20 @@ function clearPhotos() {
     editorApp.croppedImages = {};
     editorApp.$forceUpdate();
     countID = 0;
+    console.log("Clearing photos...");
+    /*
+    const res = fetch("http://localhost:3000/clear");
+    var upload = await res.json();
+    if (upload.success) {
+      // TODO CLEAR IMAGE LOGIC
+    }
+    */
   }
+}
+
+function saveImages() {
+  console.log("Saving images...");
+  
 }
 
 
