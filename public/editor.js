@@ -1,13 +1,21 @@
-
+/* Main editor variables. */
 var BeatLoader = VueSpinner.BeatLoader
-var croppedImages = {};
-var originalImages = {};
-var currentImage = null;
-var countID = 0;
-var imageCounter = document.getElementById("imageCounter");
-const defaultImageUrl = "";
-const numRequired = 2;
+var croppedImages = {}; // Object containing the cropped images as B64.
+var originalImages = {}; // Object containing the original images as B64.
+var currentImage = null; // The current image that is being edited.
+var countID = 0; // The image ID counter each image is assigned when created.
+var imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
+const defaultImageUrl = ""; // The default image URL used for the background image.
+const numRequired = 2; // The number of images required to be uploaded for the user to be able to select next.
 
+/* Server HTTP request configs. TODO: Change over to the correct urls */
+const uploadURL =  "http://localhost:3000/upload";
+const deleteImageURL = "http://localhost:3000/delete";
+const clearAllImagesURL = "http://localhost:3000/clear";
+const backgroundUploadImageURL = "http://localhost:3000/background";
+const backgroundTexturesURL = "http://localhost:3000/textures";
+
+/* The configured croppy default settings for the editor to use. */
 let croppieSettings = {
   viewport: { height: 425, width: 300, type: "square" },
   enableOrientation: true,
@@ -15,8 +23,10 @@ let croppieSettings = {
   enableExif: true,
 };
 
+
 let cropped = {};
 
+/* The main editor Vue App */.
 var editorApp = new Vue({
   el: "#editorApp",
   data: {
@@ -28,15 +38,16 @@ var editorApp = new Vue({
     clearPhotos: clearPhotos
   },
   components: {
-    BeatLoader
+    BeatLoader // Image upload spinner
   }
 });
 
+/* Card component used to represent a memory game card. */
 Vue.component('card', {
   props: ['cardid', "imgurl", "uploaded"],
   data:  function () {
     return {
-      imageUploaded: true
+      imageUploaded: true // This is inverted.
   }},
   template: `<div :data-id=cardid class='text-center'>
             <img :src=imgurl class='card-img memory-card' />
@@ -44,8 +55,9 @@ Vue.component('card', {
             <beat-loader :loading=this.imageUploaded style="margin: 8px;"></beat-loader>
             </div>`,
   components: {
-    BeatLoader
+    BeatLoader // Spinner used to represent when an image being uploaded.
   },
+  // When an image is cropped using croppie, upload it to the server and then change the spinner.
   async created() {
     const res = await fetch("http://localhost:3000/upload");
     var upload = await res.json();
@@ -67,6 +79,7 @@ function clearPhotos() {
     editorApp.$forceUpdate();
     countID = 0;
     console.log("Clearing photos...");
+    // TODO: run clear photos API against the server and wait for the response.
     /*
     const res = fetch("http://localhost:3000/clear");
     var upload = await res.json();
@@ -83,6 +96,10 @@ function clearPhotos() {
  */
 function nextPressed() {
   alert("yo");
+  // Hide the images div
+  // Present all the cards of the background textures, backgroundTexturesURL.
+  // Show summarise page.
+  // Go to payment page.
 }
 
 
@@ -134,6 +151,7 @@ function addImage() {
 
 /**
  * Delete an image from the server via a HTTP request.
+ * 
  * @param {*} id 
  */
 function deleteImage(id) {
