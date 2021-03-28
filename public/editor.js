@@ -6,7 +6,7 @@ var currentImage = null;
 var countID = 0;
 var imageCounter = document.getElementById("imageCounter");
 const defaultImageUrl = "";
-const numRequired = 1;
+const numRequired = 2;
 
 let croppieSettings = {
   viewport: { height: 425, width: 300, type: "square" },
@@ -21,12 +21,11 @@ var editorApp = new Vue({
   el: "#editorApp",
   data: {
     editing: false,
-    numRequired: 32,
-    croppedImages: cropped,
+    numRequired: numRequired,
+    croppedImages: cropped
   },
   methods: {
-    saveImages: saveImages,
-    clearPhotos: clearPhotos,
+    clearPhotos: clearPhotos
   },
   components: {
     BeatLoader
@@ -58,6 +57,9 @@ Vue.component('card', {
 });
 
 
+/**
+ * Sends a HTTP request to the server to clear all photos associated with the account.
+ */
 function clearPhotos() {
   var answer = confirm("Are you sure you want to clear all photos?");
   if (answer) {
@@ -75,12 +77,20 @@ function clearPhotos() {
   }
 }
 
-function saveImages() {
-  console.log("Saving images...");
-  
+/**
+ * Once 32 photos have been uploaded. The next option allows the user to select a background
+ * texture.
+ */
+function nextPressed() {
+  alert("yo");
 }
 
 
+/**
+ * Once an image has been selected using the uploader, the cropping library is set with the image.
+ * 
+ * @param {*} event 
+ */
 function setImage(event) {
   editorApp.editing = true;
   var reader = new FileReader();
@@ -92,11 +102,18 @@ function setImage(event) {
   reader.readAsDataURL(event.currentTarget.files[0]);
 }
 
+
+/**
+ * Remove the current image from croppie and cancel the request.
+ */
 function cancelImage() {
   $("#viewer").croppie("destroy");
   editorApp.editing = false;
 }
 
+/**
+ * Add the cropped  image to the background and upload the image to the server via a HTTP request.
+ */
 function addImage() {
   $("#viewer")
     .croppie("result", {
@@ -115,6 +132,10 @@ function addImage() {
     });
 }
 
+/**
+ * Delete an image from the server via a HTTP request.
+ * @param {*} id 
+ */
 function deleteImage(id) {
   delete editorApp.croppedImages[id];
   editorApp.$forceUpdate();
