@@ -1,5 +1,5 @@
 /* Main editor variables. */
-var BeatLoader = VueSpinner.BeatLoader
+var BeatLoader = VueSpinner.BeatLoader;
 var croppedImages = {}; // Object containing the cropped images as B64.
 var originalImages = {}; // Object containing the original images as B64.
 var currentImage = null; // The current image that is being edited.
@@ -10,17 +10,11 @@ const numRequired = 2; // The number of images required to be uploaded for the u
 
 /* Title Text shown at the top of the Vue App */
 let uploadText = "Upload a Memory!";
-let cropText = "Crop the Photo to Fit on the Card"
+let cropText = "Crop the Photo to Fit on the Card";
 let nextText = "Press Next to Select a Card Background";
-let backgroundText = "Select a Card Background"
+let backgroundText = "Select a Card Background";
 let titleText = uploadText; // Changing this variable changes the text in the app.
 
-/* Server HTTP request configs. TODO: Change over to the correct urls */
-const uploadURL =  "http://localhost:3000/upload";
-const deleteImageURL = "http://localhost:3000/delete";
-const clearAllImagesURL = "http://localhost:3000/clear";
-const backgroundUploadImageURL = "http://localhost:3000/background";
-const backgroundTexturesURL = "http://localhost:3000/textures";
 
 /* The configured croppy default settings for the editor to use. */
 let croppieSettings = {
@@ -30,7 +24,6 @@ let croppieSettings = {
   enableExif: true,
 };
 
-
 let cropped = {};
 
 /* The main editor Vue App */
@@ -39,63 +32,60 @@ var editorApp = new Vue({
   data: {
     editing: false,
     numRequired: numRequired,
-    croppedImages: cropped
+    croppedImages: cropped,
   },
   methods: {
-    clearPhotos: clearPhotos
+    clearPhotos: clearPhotos,
   },
   components: {
-    BeatLoader // Image upload spinner
-  }
+    BeatLoader, // Image upload spinner
+  },
 });
 
 /* Card component used to represent a memory game card. */
-Vue.component('card', {
-  props: ['cardid', "imgurl", "uploaded"],
-  data:  function () {
+Vue.component("card", {
+  props: ["cardid", "imgurl", "uploaded"],
+  data: function () {
     return {
-      imageUploaded: true // This is inverted.
-  }},
+      imageUploaded: true, // This is inverted.
+    };
+  },
   template: `<div :data-id=cardid class='text-center'>
             <img :src=imgurl class='card-img memory-card' />
             <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: this.imageUploaded }" type='button' aria-label='Close' class='btn-close'></button>
             <beat-loader :loading=this.imageUploaded style="margin: 8px;"></beat-loader>
             </div>`,
   components: {
-    BeatLoader // Spinner used to represent when an image being uploaded.
+    BeatLoader, // Spinner used to represent when an image being uploaded.
   },
   // When an image is cropped using croppie, upload it to the server and then change the spinner.
   async created() {
-    const res = await fetch("http://localhost:3000/upload");
-    var upload = await res.json();
-    if (upload.success) {
-      // TODO UPLOAD IMAGE LOGIC
+    // Upload new photo. TODO pass photo file.
+    var res = uploadNewPhoto();
+    if (res) {
       this.imageUploaded = !upload.success;
     }
-  }
+  },
 });
-
 
 /**
  * Sends a HTTP request to the server to clear all photos associated with the account.
  */
 function clearPhotos() {
   var answer = confirm("Are you sure you want to clear all photos?");
-  if (answer) {
+  if (!answer) return;
+
+  let res = deleteAllPhotos();
+  if (res) {
+    console.log("Clearing all photos...");
     editorApp.croppedImages = {};
     editorApp.$forceUpdate();
     countID = 0;
-    console.log("Clearing photos...");
-    // TODO: run clear photos API against the server and wait for the response.
-    /*
-    const res = fetch("http://localhost:3000/clear");
-    var upload = await res.json();
-    if (upload.success) {
-      // TODO CLEAR IMAGE LOGIC
-    }
-    */
 
     titleText = nextText;
+  } else {
+    alert("An error occured attempting to delete the ");
+    console.log("An error ocurred deleting all photos.");
   }
 }
 
@@ -104,18 +94,19 @@ function clearPhotos() {
  * texture.
  */
 function nextPressed() {
-  alert("yo");
+  // TODO Check that
+  console.log("Moving to background selector.");
+  alert("Moving to background selector.");
   // Hide the images div
   // Present all the cards of the background textures, backgroundTexturesURL.
   // Show summarise page.
   // Go to payment page.
 }
 
-
 /**
  * Once an image has been selected using the uploader, the cropping library is set with the image.
- * 
- * @param {*} event 
+ *
+ * @param {*} event
  */
 function setImage(event) {
   editorApp.editing = true;
@@ -129,14 +120,13 @@ function setImage(event) {
   reader.readAsDataURL(event.currentTarget.files[0]);
 }
 
-
 /**
  * Remove the current image from croppie and cancel the request.
  */
 function cancelImage() {
   $("#viewer").croppie("destroy");
   editorApp.editing = false;
-  
+
   if (Object.keys(croppedImages).length === numRequired) {
     titleText = nextText;
   } else {
@@ -173,17 +163,23 @@ function addImage() {
 
 /**
  * Delete an image from the server via a HTTP request.
- * 
- * @param {*} id 
+ *
+ * @param {*} id
  */
 function deleteImage(id) {
-  delete editorApp.croppedImages[id];
-  editorApp.$forceUpdate();
+  let res = deletePhoto(id);
 
-  if (Object.keys(croppedImages).length == numRequired) {
-    titleText = nextText;
+  if (res) {
+    console.log(`Successfully deleted photo '${id}'.`);
+    delete editorApp.croppedImages[id];
+    editorApp.$forceUpdate();
+
+    if (Object.keys(croppedImages).length == numRequired) {
+      titleText = nextText;
+    } else {
+      titleText = uploadText;
+    }
   } else {
-    titleText = uploadText;
+    console.log(`Request to server failed. Failed to delete photo '${id}'.`);
   }
-
 }
