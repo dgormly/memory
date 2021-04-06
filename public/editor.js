@@ -1,8 +1,9 @@
-/* Main editor letiables. */
+/* Main editor variables. */
 let BeatLoader = VueSpinner.BeatLoader;
 let cropped = {}; // Object containing the cropped images as B64.
 let originalImages = {}; // Object containing the original images as B64.
 let currentImage = null; // The current image that is being edited.
+let bgImages = {};
 let countID = 0; // The image ID counter each image is assigned when created.
 let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
@@ -30,14 +31,22 @@ let editorApp = new Vue({
   el: "#editorApp",
   data: {
     editing: false,
+    backgroundSelect: false,
     numRequired: numRequired,
     croppedImages: cropped,
+    backgroundImages: bgImages
   },
   methods: {
     clearPhotos: clearPhotos,
   },
   components: {
     BeatLoader, // Image upload spinner
+  },
+  // When an app is created we need to get the current images and background images
+  async created() {
+    cropped = getCurrentPhotos();
+    //this.croppedImages = getCurrbackgroundImagesbgImagesentPhotos();
+    countID = Math.round(Math.random() * 100000);// start at random point.
   },
 });
 
@@ -50,9 +59,9 @@ Vue.component("card", {
     };
   },
   template: `<div :data-id=cardid class='text-center'>
-            <img :src=imgurl class='card-img memory-card' />
-            <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: this.imageUploaded }" type='button' aria-label='Close' class='btn-close'></button>
-            <beat-loader :loading=this.imageUploaded style="margin: 8px;"></beat-loader>
+              <img :src=imgurl class='card-img memory-card' />
+              <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: this.imageUploaded }" type='button' aria-label='Close' class='btn-close'></button>
+              <beat-loader :loading=this.imageUploaded style="margin: 8px;"></beat-loader>
             </div>`,
   components: {
     BeatLoader, // Spinner used to represent when an image being uploaded.
@@ -88,7 +97,7 @@ function clearPhotos() {
     console.log("Clearing all photos...");
     editorApp.croppedImages = {};
     editorApp.$forceUpdate();
-    countID = 0;
+    countID = Math.round(Math.random() * 100000);
 
     titleText = nextText;
   } else {

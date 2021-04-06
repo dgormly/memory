@@ -74,6 +74,16 @@
         <img id="viewer" width="300" height="auto" />
         <div id="uploadMsg">Upload a File to Start Cropping</div>
       </div>
+      <div id="backgroundsDiv" class="text-center" v-bind:class="{ hide: !backgroundSelect }">
+        <card
+          v-for="(card, key) in backgroundImages"
+          v-bind:key="key"
+          v-bind:cardid="key"
+          v-bind:imgurl="card"
+          v-bind:uploaded="false"
+          class="thumbnail text-center"
+        ></card>
+      </div>
       <div id="imagesDiv" class="text-center" v-bind:class="{ hide: editing }">
         <card
           v-for="(card, key) in cropped"
