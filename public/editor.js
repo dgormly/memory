@@ -63,7 +63,7 @@ Vue.component("card", {
     // Upload new photo. TODO pass photo file.
     var res = uploadNewPhoto();
     if (res) {
-      this.imageUploaded = !upload.success;
+      this.imageUploaded = !res;
     }
   },
 });
