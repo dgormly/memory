@@ -1,10 +1,10 @@
 /* Main editor variables. */
 let BeatLoader = VueSpinner.BeatLoader;
-let cropped = {}; // Object containing the cropped images as B64.
 let originalImages = {}; // Object containing the original images as B64.
 let currentImage = null; // The current image that is being edited.
 let bgImages = {};
-let countID = 0; // The image ID counter each image is assigned when created.
+let cropped = {};
+let countID =  Math.round(Math.random() * 100000); // The image ID counter each image is assigned when created.
 let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
 const numRequired = 2; // The number of images required to be uploaded for the user to be able to select next.
@@ -15,7 +15,6 @@ let cropText = "Crop the Photo to Fit on the Card";
 let nextText = "Press Next to Select a Card Background";
 let backgroundText = "Select a Card Background";
 var titleText = uploadText; // Changing this letiable changes the text in the app.
-
 
 /* The configured croppy default settings for the editor to use. */
 let croppieSettings = {
@@ -42,12 +41,9 @@ let editorApp = new Vue({
   components: {
     BeatLoader, // Image upload spinner
   },
-  // When an app is created we need to get the current images and background images
   async created() {
-    cropped = getCurrentPhotos();
-    //this.croppedImages = getCurrbackgroundImagesbgImagesentPhotos();
-    countID = Math.round(Math.random() * 100000);// start at random point.
-  },
+    this.croppedImages = getCurrentPhotos();
+  }
 });
 
 /* Card component used to represent a memory game card. */
@@ -67,10 +63,10 @@ Vue.component("card", {
     BeatLoader, // Spinner used to represent when an image being uploaded.
   },
   // When an image is cropped using croppie, upload it to the server and then change the spinner.
-  async created() {
-
+  created: () => {
+          debugger;
           // Upload new photo. TODO pass photo file.
-          let res = uploadNewPhoto(this.imageUploaded);
+          let res = uploadNewPhoto();
       
           if (!res) {
             console.log("Failed to upload the image.");
@@ -78,11 +74,17 @@ Vue.component("card", {
           } else {
             console.log("Image successfully uploaded.")
             // Turn off spinner.
-            this.imageUploaded = !res;
+            imageUploaded = !res;
         }
+  }
+});
 
 
-  },
+/**
+ * Force dom to reload v-if
+ */
+window.addEventListener("load", function(event) {
+  editorApp.$forceUpdate();
 });
 
 /**
