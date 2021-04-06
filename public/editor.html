@@ -32,7 +32,7 @@
             class="btn btn-success"
             onclick="document.getElementById('imageInput').click();"
             v-bind:class="{ 
-              hide: editing || Object.keys(croppedImages).length === numRequired,
+              hide: editing || Object.keys(cropped).length === numRequired,
             }"
           >
             Add a Photo!
@@ -56,9 +56,9 @@
             id="imageCounter"
             class="text-right badge bg-secondary"
             v-bind:class="{ 
-              hide: editing || Object.keys(croppedImages).length === numRequired
+              hide: editing || Object.keys(cropped).length === numRequired
             }"
-            >{{ Object.keys(croppedImages).length }}/{{ numRequired }}</span
+            >{{ Object.keys(cropped).length }}/{{ numRequired }}</span
           >
           <button
             id="rotateBtn"
@@ -76,7 +76,7 @@
       </div>
       <div id="imagesDiv" class="text-center" v-bind:class="{ hide: editing }">
         <card
-          v-for="(card, key) in croppedImages"
+          v-for="(card, key) in cropped"
           v-bind:key="key"
           v-bind:cardid="key"
           v-bind:imgurl="card"
@@ -104,7 +104,7 @@
               data-bs-target="#morePhotosModal"
               onclick="nextPressed()"
               v-bind:class="{ 
-                hide: editing || Object.keys(croppedImages).length !== numRequired
+                hidden: editing || Object.keys(cropped).length !== numRequired
               }"
             >
               Next

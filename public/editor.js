@@ -1,6 +1,6 @@
 /* Main editor letiables. */
 let BeatLoader = VueSpinner.BeatLoader;
-let croppedImages = {}; // Object containing the cropped images as B64.
+let cropped = {}; // Object containing the cropped images as B64.
 let originalImages = {}; // Object containing the original images as B64.
 let currentImage = null; // The current image that is being edited.
 let countID = 0; // The image ID counter each image is assigned when created.
@@ -24,7 +24,6 @@ let croppieSettings = {
   enableExif: true,
 };
 
-let cropped = {};
 
 /* The main editor Vue App */
 let editorApp = new Vue({
@@ -136,7 +135,7 @@ function cancelImage() {
   $("#viewer").croppie("destroy");
   editorApp.editing = false;
 
-  if (Object.keys(croppedImages).length === numRequired) {
+  if (Object.keys(editorApp.croppedImages).length === numRequired) {
     titleText = nextText;
   } else {
     titleText = uploadText;
@@ -144,7 +143,7 @@ function cancelImage() {
 }
 
 /**
- * Add the cropped  image to the background and upload the image to the server via a HTTP request.
+ * Add the cropped image to the background and upload the image to the server via a HTTP request.
  */
 function addImage() {
   $("#viewer")
@@ -164,7 +163,7 @@ function addImage() {
 
 
       // Change text.
-      if (Object.keys(croppedImages).length === numRequired) {
+      if (Object.keys(editorApp.croppedImages).length === numRequired) {
         titleText = nextText;
       } else {
         titleText = uploadText;
@@ -175,7 +174,7 @@ function addImage() {
 /**
  * Delete an image from the server via a HTTP request.
  *
- * @param {*} id
+ * @param {string} id
  */
 function deleteImage(id) {
 
@@ -186,7 +185,7 @@ function deleteImage(id) {
     delete editorApp.croppedImages[id];
     editorApp.$forceUpdate();
 
-    if (Object.keys(croppedImages).length == numRequired) {
+    if (Object.keys(editorApp.croppedImages).length == numRequired) {
       titleText = nextText;
     } else {
       titleText = uploadText;

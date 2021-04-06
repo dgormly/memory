@@ -48,6 +48,7 @@ display: none;
 
 #uploadText {
   color:white;
+  margin: auto;
 }
 
 #viewer:not(.view) {
