@@ -167,6 +167,7 @@ function addImage() {
  * @param {*} id
  */
 function deleteImage(id) {
+
   let res = deletePhoto(id);
 
   if (res) {
