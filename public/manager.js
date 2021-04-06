@@ -16,6 +16,7 @@ const backgroundTexturesURL = "http://localhost:3000/textures";
  * @returns boolean, True if successful, false otherwise.
  */
 function uploadNewPhoto(photoID) {
+    console.log("Manager: Uploading new photo.");
     /*
     const res = await fetch("http://localhost:3000/upload");
     var upload = await res.json();
@@ -36,6 +37,7 @@ function uploadNewPhoto(photoID) {
  * @returns boolean, True if successful, false otherwise.
  */
 function deletePhoto(photoID) {
+    console.log("Manager: Deleting photo.");
     // TODO
     return true;
 }
@@ -47,6 +49,7 @@ function deletePhoto(photoID) {
  * @returns boolean, True if successful, false otherwise.
  */
 function deleteAllPhotos() {
+    console.log("Manager: Deleting all photos.");
     // TODO 
     return true;
 }
@@ -58,6 +61,17 @@ function deleteAllPhotos() {
  * @param {string} backgroundID 
  */
 function selectCardBackground(backgroundID) {
+    console.log("Manager: Selecting background image.");
     // TODO
     return true;
+}
+
+
+/** 
+ * Returns a list of backgrounds to choose from. 
+ */
+function getCardBackgroundList() {
+    console.log("Manager: Getting background image list.");
+    // TODO
+    return ["background.jpg"];
 }

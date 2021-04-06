@@ -1,10 +1,10 @@
-/* Main editor variables. */
-var BeatLoader = VueSpinner.BeatLoader;
-var croppedImages = {}; // Object containing the cropped images as B64.
-var originalImages = {}; // Object containing the original images as B64.
-var currentImage = null; // The current image that is being edited.
-var countID = 0; // The image ID counter each image is assigned when created.
-var imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
+/* Main editor letiables. */
+let BeatLoader = VueSpinner.BeatLoader;
+let croppedImages = {}; // Object containing the cropped images as B64.
+let originalImages = {}; // Object containing the original images as B64.
+let currentImage = null; // The current image that is being edited.
+let countID = 0; // The image ID counter each image is assigned when created.
+let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
 const numRequired = 2; // The number of images required to be uploaded for the user to be able to select next.
 
@@ -13,7 +13,7 @@ let uploadText = "Upload a Memory!";
 let cropText = "Crop the Photo to Fit on the Card";
 let nextText = "Press Next to Select a Card Background";
 let backgroundText = "Select a Card Background";
-let titleText = uploadText; // Changing this variable changes the text in the app.
+var titleText = uploadText; // Changing this letiable changes the text in the app.
 
 
 /* The configured croppy default settings for the editor to use. */
@@ -27,7 +27,7 @@ let croppieSettings = {
 let cropped = {};
 
 /* The main editor Vue App */
-var editorApp = new Vue({
+let editorApp = new Vue({
   el: "#editorApp",
   data: {
     editing: false,
@@ -60,11 +60,20 @@ Vue.component("card", {
   },
   // When an image is cropped using croppie, upload it to the server and then change the spinner.
   async created() {
-    // Upload new photo. TODO pass photo file.
-    var res = uploadNewPhoto();
-    if (res) {
-      this.imageUploaded = !res;
-    }
+
+          // Upload new photo. TODO pass photo file.
+          let res = uploadNewPhoto(this.imageUploaded);
+      
+          if (!res) {
+            console.log("Failed to upload the image.");
+            // TODO convert to failed icon w/ onclick to reupload.
+          } else {
+            console.log("Image successfully uploaded.")
+            // Turn off spinner.
+            this.imageUploaded = !res;
+        }
+
+
   },
 });
 
@@ -72,7 +81,7 @@ Vue.component("card", {
  * Sends a HTTP request to the server to clear all photos associated with the account.
  */
 function clearPhotos() {
-  var answer = confirm("Are you sure you want to clear all photos?");
+  let answer = confirm("Are you sure you want to clear all photos?");
   if (!answer) return;
 
   let res = deleteAllPhotos();
@@ -111,7 +120,7 @@ function nextPressed() {
 function setImage(event) {
   editorApp.editing = true;
   titleText = cropText;
-  var reader = new FileReader(); // Allow the user to select a photo that they would like to crop.
+  let reader = new FileReader(); // Allow the user to select a photo that they would like to crop.
   reader.onload = function (e) {
     document.getElementById("viewer").src = e.currentTarget.result;
     currentImage = e.currentTarget.result;
@@ -145,7 +154,7 @@ function addImage() {
     })
     .then(function (imageBase64) {
       editorApp.editing = false;
-      var image = document.createElement("img");
+      let image = document.createElement("img");
       image.src = imageBase64;
       image.height = 85;
       image.width = 65;
@@ -153,6 +162,8 @@ function addImage() {
       countID++;
       $("#viewer").croppie("destroy");
 
+
+      // Change text.
       if (Object.keys(croppedImages).length === numRequired) {
         titleText = nextText;
       } else {
