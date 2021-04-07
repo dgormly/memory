@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="../node_modules/croppie/croppie.css" />
     <link rel="stylesheet" href="editor.css" />
     <meta name="viewport" content="width=device-width" />
-    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
     <script src="../node_modules/vue-spinner/dist/vue-spinner.min.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"
@@ -25,113 +25,13 @@
   </head>
   <body class="bg-light">
     <div id="editorApp">
-      <nav class="navbar navbar-dark bg-dark text-end">
-        <div class="container-fluid">
-          <input id="imageInput" type="file" onchange="setImage(event)" />
-          <button
-            class="btn btn-success"
-            onclick="document.getElementById('imageInput').click();"
-            v-bind:class="{ 
-              hide: editing || Object.keys(croppedImages).length === numRequired,
-            }"
-          >
-            Add a Photo!
-          </button>
-          <span v-bind:class="{ hide: !editing }">
-            <button
-              id="cancelBtn"
-              class="btn btn-secondary"
-              onclick="cancelImage()"
-            >
-              Cancel
-            </button>
-          </span>
-          <span
-            id="uploadText"
-            class="text-center"
-            >{{ titleText }}</span
-          >
-
-          <span
-            id="imageCounter"
-            class="text-right badge bg-secondary"
-            v-bind:class="{ 
-              hide: editing || Object.keys(croppedImages).length === numRequired
-            }"
-            >{{ Object.keys(croppedImages).length }}/{{ numRequired }}</span
-          >
-          <button
-            id="rotateBtn"
-            onclick="$('#viewer').croppie('rotate', 90)"
-            class="btn btn-light"
-            v-bind:class="{ hide: !editing}"
-          >
-            Rotate
-          </button>
-        </div>
-      </nav>
+      <top-nav :title="this.titleText" :editing="this.mode" :numImages="0" :numRequired="2" />
       <div v-bind:class="{ view: editing }" id="editor">
         <img id="viewer" width="300" height="auto" />
         <div id="uploadMsg">Upload a File to Start Cropping</div>
       </div>
-      <div id="backgroundsDiv" class="text-center" v-bind:class="{ hide: !backgroundSelect }">
-      <card
-          v-for="(card, key) in backgroundImages"
-          v-bind:key="key"
-          v-bind:cardid="key"
-          v-bind:imgurl="card"
-          v-bind:uploaded="false"
-          class="thumbnail text-center"
-        ></card>
-      </div>
-      <div id="imagesDiv" class="text-center" v-bind:class="{ hide: editing }">
-        <card
-          v-for="(card, key) in croppedImages"
-          v-bind:key="key"
-          v-bind:cardid="key"
-          v-bind:imgurl="card"
-          v-bind:uploaded="false"
-          class="thumbnail text-center"
-        ></card>
-      </div>
-      <nav
-        id="bottomActionBar"
-        class="navbar fixed-bottom navbar-dark bg-dark text-end"
-      >
-        <div class="container-fluid">
-          <button
-            class="btn btn-outline-danger"
-            v-on:click="clearPhotos"
-            v-bind:class="{ hidden: editing }"
-          >
-            Clear Photos
-          </button>
-          <span>
-            <button
-              id="nextButton"
-              class="btn btn-success"
-              data-bs-toggle="modal"
-              data-bs-target="#morePhotosModal"
-              onclick="nextPressed()"
-              v-bind:class="{ 
-                hidden: editing || Object.keys(croppedImages).length !== numRequired
-              }"
-            >
-              Next
-            </button>
-            <button
-              id="addBtn"
-              class="btn btn-success"
-              onclick="addImage()"
-              v-bind:class="{ 
-                hide: !editing
-              }"
-            >
-              Add
-            </button>
-          </span>
-        </div>
-      </nav>
+      <card-display></card-display>
+    <bottom-nav />
     </div>
     <script src="manager.js"></script>
     <script src="editor.js"></script>

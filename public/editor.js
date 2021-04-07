@@ -24,26 +24,100 @@ let croppieSettings = {
   enableExif: true,
 };
 
-/* The main editor Vue App */
-let editorApp = new Vue({
-  el: "#editorApp",
+
+Vue.component("top-nav", {
+  props: ["title" ,"editing", "numImages", "numRequired"],
+  template: `
+    <nav class="navbar navbar-dark bg-dark text-end">
+        <div class="container-fluid">
+          <input id="imageInput" type="file" onchange="setImage(event)" />
+          <button
+            class="btn btn-success"
+            onclick="document.getElementById('imageInput').click();"
+            v-bind:class="{
+              hide: editing != 0
+            }"
+          >
+            Add a Photo!
+          </button>
+          <span v-bind:class="{ hide: editing !== MODES.EDITING }">
+            <button
+              id="cancelBtn"
+              class="btn btn-secondary"
+              onclick="cancelImage()"
+            >
+              Cancel
+            </button>
+          </span>
+          <span
+            id="uploadText"
+            class="text-center"
+            >{{ title }}</span
+          >
+          <span
+            id="imageCounter"
+            class="text-right badge bg-secondary"
+            v-bind:class="{ 
+              hide: editing || numImages === numRequired
+            }"
+            >{{ numImages }}/{{ numRequired }}</span
+          >
+          <button
+            id="rotateBtn"
+            onclick="$('#viewer').croppie('rotate', 90)"
+            class="btn btn-light"
+            v-bind:class="{ hide: !editing}"
+          >
+            Rotate
+          </button>
+        </div>
+      </nav>
+  `
+});
+
+Vue.component("bottom-nav", {
+  template: `
+    <nav
+        id="bottomActionBar"
+        class="navbar fixed-bottom navbar-dark bg-dark text-end"
+      >
+        <div class="container-fluid">
+          <button
+            class="btn btn-outline-danger"
+            v-on:click="clearPhotos"
+            v-bind:class="{ hidden: editing }"
+          >
+            Clear Photos
+          </button>
+          <span>
+            <button
+              id="nextButton"
+              class="btn btn-success"
+              data-bs-toggle="modal"
+              data-bs-target="#morePhotosModal"
+              onclick="nextPressed()"
+              v-bind:class="{ 
+                hidden: editing || Object.keys(croppedImages).length !== numRequired
+              }"
+            >
+              Next
+            </button>
+            <button
+              id="addBtn"
+              class="btn btn-success"
+              onclick="addImage()"
+              v-bind:class="{ 
+                hide: !editing
+              }"
+            >
+              Add
+            </button>
+          </span>
+        </div>
+      </nav>
+  `,
   data: function () {
-    return {
-      editing: false,
-      backgroundSelect: false,
-      numRequired: numRequired,
-      croppedImages: cropped,
-      backgroundImages: bgImages,
-    };
-  },
-  methods: {
-    clearPhotos: clearPhotos,
-  },
-  components: {
-    BeatLoader, // Image upload spinner
-  },
-  async created() {
-    this.croppedImages = getCurrentPhotos();
+   
   },
 });
 
@@ -65,7 +139,6 @@ Vue.component("card", {
   },
   // When an image is cropped using croppie, upload it to the server and then change the spinner.
   created: () => {
-    debugger;
     // Upload new photo. TODO pass photo file.
     let res = uploadNewPhoto();
 
@@ -80,21 +153,55 @@ Vue.component("card", {
   },
 });
 
-/**
- * Force dom to reload v-if
- */
-window.addEventListener("load", function (event) {
-  editorApp.$forceUpdate();
-});
 
 /* Cards component where all cards will be displayed in the app. */
 Vue.component("card-display", {
-  props: [],
-  data: function() {
+  props: ["cards"],
+  data: function () {
     return {};
   },
   template: `
-  `
+    <div class="text-center">
+    <card
+      v-for="(card, key) in cards"
+      v-bind:key="key"
+      v-bind:cardid="key"
+      v-bind:imgurl="card"
+      v-bind:uploaded="false"
+      class="thumbnail text-center"
+    ></card>
+  </div>
+  `,
+});
+
+/* The main editor Vue App */
+let editorApp = new Vue({
+  el: "#editorApp",
+  data: function () {
+    return {
+      MODES: {
+        EDITING: 0,
+        BACKGROUND: 1,
+        UPLOADED_CARDS: 2
+      },
+      mode: MODES.UPLOADED_CARDS,
+      editing: false,
+      titleText: titleText,
+      backgroundSelect: false,
+      numRequired: numRequired,
+      croppedImages: cropped,
+      backgroundImages: bgImages,
+    };
+  },
+  methods: {
+    clearPhotos: clearPhotos,
+  },
+  components: {
+    BeatLoader // Image upload spinner
+  },
+  async created() {
+    this.croppedImages = getCurrentPhotos();
+  }
 });
 
 /**
