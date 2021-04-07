@@ -75,7 +75,7 @@
         <div id="uploadMsg">Upload a File to Start Cropping</div>
       </div>
       <div id="backgroundsDiv" class="text-center" v-bind:class="{ hide: !backgroundSelect }">
-        <card
+      <card
           v-for="(card, key) in backgroundImages"
           v-bind:key="key"
           v-bind:cardid="key"

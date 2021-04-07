@@ -4,7 +4,7 @@ let originalImages = {}; // Object containing the original images as B64.
 let currentImage = null; // The current image that is being edited.
 let bgImages = {};
 let cropped = {};
-let countID =  Math.round(Math.random() * 100000); // The image ID counter each image is assigned when created.
+let countID = Math.round(Math.random() * 100000); // The image ID counter each image is assigned when created.
 let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
 const numRequired = 2; // The number of images required to be uploaded for the user to be able to select next.
@@ -24,16 +24,17 @@ let croppieSettings = {
   enableExif: true,
 };
 
-
 /* The main editor Vue App */
 let editorApp = new Vue({
   el: "#editorApp",
-  data: {
-    editing: false,
-    backgroundSelect: false,
-    numRequired: numRequired,
-    croppedImages: cropped,
-    backgroundImages: bgImages
+  data: function () {
+    return {
+      editing: false,
+      backgroundSelect: false,
+      numRequired: numRequired,
+      croppedImages: cropped,
+      backgroundImages: bgImages,
+    };
   },
   methods: {
     clearPhotos: clearPhotos,
@@ -43,7 +44,7 @@ let editorApp = new Vue({
   },
   async created() {
     this.croppedImages = getCurrentPhotos();
-  }
+  },
 });
 
 /* Card component used to represent a memory game card. */
@@ -64,27 +65,36 @@ Vue.component("card", {
   },
   // When an image is cropped using croppie, upload it to the server and then change the spinner.
   created: () => {
-          debugger;
-          // Upload new photo. TODO pass photo file.
-          let res = uploadNewPhoto();
-      
-          if (!res) {
-            console.log("Failed to upload the image.");
-            // TODO convert to failed icon w/ onclick to reupload.
-          } else {
-            console.log("Image successfully uploaded.")
-            // Turn off spinner.
-            imageUploaded = !res;
-        }
-  }
-});
+    debugger;
+    // Upload new photo. TODO pass photo file.
+    let res = uploadNewPhoto();
 
+    if (!res) {
+      console.log("Failed to upload the image.");
+      // TODO convert to failed icon w/ onclick to reupload.
+    } else {
+      console.log("Image successfully uploaded.");
+      // Turn off spinner.
+      imageUploaded = !res;
+    }
+  },
+});
 
 /**
  * Force dom to reload v-if
  */
-window.addEventListener("load", function(event) {
+window.addEventListener("load", function (event) {
   editorApp.$forceUpdate();
+});
+
+/* Cards component where all cards will be displayed in the app. */
+Vue.component("card-display", {
+  props: [],
+  data: function() {
+    return {};
+  },
+  template: `
+  `
 });
 
 /**
@@ -172,7 +182,6 @@ function addImage() {
       countID++;
       $("#viewer").croppie("destroy");
 
-
       // Change text.
       if (Object.keys(editorApp.croppedImages).length === numRequired) {
         titleText = nextText;
@@ -188,7 +197,6 @@ function addImage() {
  * @param {string} id
  */
 function deleteImage(id) {
-
   let res = deletePhoto(id);
 
   if (res) {
