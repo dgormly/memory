@@ -80,6 +80,7 @@ Vue.component("top-nav", {
 });
 
 Vue.component("bottom-nav", {
+  props: ["editing"],
   template: `
     <nav
         id="bottomActionBar"
@@ -89,7 +90,7 @@ Vue.component("bottom-nav", {
           <button
             class="btn btn-outline-danger"
             v-on:click="clearPhotos"
-            v-bind:class="{ hidden: editing }"
+            v-bind:class="{ hidden: editing != 'CARDS' }"
           >
             Clear Photos
           </button>
@@ -101,7 +102,7 @@ Vue.component("bottom-nav", {
               data-bs-target="#morePhotosModal"
               onclick="nextPressed()"
               v-bind:class="{ 
-                hidden: editing || Object.keys(croppedImages).length !== numRequired
+                hidden: editing != 'NEXT'
               }"
             >
               Next
@@ -111,7 +112,7 @@ Vue.component("bottom-nav", {
               class="btn btn-success"
               onclick="addImage()"
               v-bind:class="{ 
-                hide: !editing
+                hide: editing != 'CROP'
               }"
             >
               Add
@@ -121,7 +122,7 @@ Vue.component("bottom-nav", {
       </nav>
   `,
   data: function () {
-   
+    return {};
   },
 });
 
