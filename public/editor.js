@@ -26,7 +26,7 @@ let croppieSettings = {
 
 
 Vue.component("top-nav", {
-  props: ["title" ,"editing", "numImages", "numRequired"],
+  props: ["title" ,"editing", "numimages", "numrequired"],
   template: `
     <nav class="navbar navbar-dark bg-dark text-end">
         <div class="container-fluid">
@@ -35,12 +35,14 @@ Vue.component("top-nav", {
             class="btn btn-success"
             onclick="document.getElementById('imageInput').click();"
             v-bind:class="{
-              hide: editing != 0
+              hide: editing != 'CARDS'
             }"
           >
             Add a Photo!
           </button>
-          <span v-bind:class="{ hide: editing !== MODES.EDITING }">
+          <span v-bind:class="{ 
+            hide: editing != 'CROP' 
+          }">
             <button
               id="cancelBtn"
               class="btn btn-secondary"
@@ -58,15 +60,17 @@ Vue.component("top-nav", {
             id="imageCounter"
             class="text-right badge bg-secondary"
             v-bind:class="{ 
-              hide: editing || numImages === numRequired
+              hide: editing != 'CARDS'
             }"
-            >{{ numImages }}/{{ numRequired }}</span
+            >{{ numimages }}/{{ numrequired }}</span
           >
           <button
             id="rotateBtn"
             onclick="$('#viewer').croppie('rotate', 90)"
             class="btn btn-light"
-            v-bind:class="{ hide: !editing}"
+            v-bind:class="{ 
+              hide: editing != 'CROP'
+            }"
           >
             Rotate
           </button>
@@ -179,12 +183,7 @@ let editorApp = new Vue({
   el: "#editorApp",
   data: function () {
     return {
-      MODES: {
-        EDITING: 0,
-        BACKGROUND: 1,
-        UPLOADED_CARDS: 2
-      },
-      mode: MODES.UPLOADED_CARDS,
+      mode: "CARDS",
       editing: false,
       titleText: titleText,
       backgroundSelect: false,
