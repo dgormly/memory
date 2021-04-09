@@ -25,8 +25,8 @@
   </head>
   <body class="bg-light">
     <div id="editorApp">
-      <top-nav :title="this.titleText" :editing="this.mode" :numimages="0" :numrequired="2"></top-nav>
-      <div v-bind:class="{ view: editing == 'CARDS' }" id="editor">
+      <top-nav @upload-photo="cropPhoto" :title="this.titleText" :editing="this.mode" :numimages="0" :numrequired="2"></top-nav>
+      <div v-bind:class="{ view: this.mode == 'CROP' }" id="editor">
         <img id="viewer" width="300" height="auto" />
         <div id="uploadMsg">Upload a File to Start Cropping</div>
       </div>

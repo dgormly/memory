@@ -24,16 +24,15 @@ let croppieSettings = {
   enableExif: true,
 };
 
-
 Vue.component("top-nav", {
-  props: ["title" ,"editing", "numimages", "numrequired"],
+  props: ["title", "editing", "numimages", "numrequired"],
   template: `
     <nav class="navbar navbar-dark bg-dark text-end">
         <div class="container-fluid">
-          <input id="imageInput" type="file" onchange="setImage(event)" />
+          <input id="imageInput" type="file" @change="setImage" />
           <button
             class="btn btn-success"
-            onclick="document.getElementById('imageInput').click();"
+            @click="onClick()"
             v-bind:class="{
               hide: editing != 'CARDS'
             }"
@@ -76,7 +75,21 @@ Vue.component("top-nav", {
           </button>
         </div>
       </nav>
-  `
+  `,
+  methods: {
+    onClick() {
+      document.getElementById("imageInput").click();
+    },
+    setImage(event) {
+      titleText = cropText;
+      let reader = new FileReader(); // Allow the user to select a photo that they would like to crop.
+      let that = this;
+      reader.onload = (e) => {
+        that.$emit("upload-photo", e.currentTarget.result);
+      };
+      reader.readAsDataURL(event.currentTarget.files[0]);
+    },
+  },
 });
 
 Vue.component("bottom-nav", {
@@ -124,6 +137,9 @@ Vue.component("bottom-nav", {
   data: function () {
     return {};
   },
+  methods: {
+    clearPhotos,
+  },
 });
 
 /* Card component used to represent a memory game card. */
@@ -158,7 +174,6 @@ Vue.component("card", {
   },
 });
 
-
 /* Cards component where all cards will be displayed in the app. */
 Vue.component("card-display", {
   props: ["cards"],
@@ -186,6 +201,7 @@ let editorApp = new Vue({
     return {
       mode: "CARDS",
       editing: false,
+      currentImage: null,
       titleText: titleText,
       backgroundSelect: false,
       numRequired: numRequired,
@@ -194,14 +210,20 @@ let editorApp = new Vue({
     };
   },
   methods: {
-    clearPhotos: clearPhotos,
+    cropPhoto(image) {
+      this.mode = "CROP";
+      document.getElementById("viewer").src = image;
+      currentImage = image;
+      $("#viewer").croppie(croppieSettings);
+    },
+    clearPhotos,
   },
   components: {
-    BeatLoader // Image upload spinner
+    BeatLoader, // Image upload spinner
   },
   async created() {
     this.croppedImages = getCurrentPhotos();
-  }
+  },
 });
 
 /**
@@ -237,23 +259,6 @@ function nextPressed() {
   // Present all the cards of the background textures, backgroundTexturesURL.
   // Show summarise page.
   // Go to payment page.
-}
-
-/**
- * Once an image has been selected using the uploader, the cropping library is set with the image.
- *
- * @param {*} event
- */
-function setImage(event) {
-  editorApp.editing = true;
-  titleText = cropText;
-  let reader = new FileReader(); // Allow the user to select a photo that they would like to crop.
-  reader.onload = function (e) {
-    document.getElementById("viewer").src = e.currentTarget.result;
-    currentImage = e.currentTarget.result;
-    $("#viewer").croppie(croppieSettings);
-  };
-  reader.readAsDataURL(event.currentTarget.files[0]);
 }
 
 /**
