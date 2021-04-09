@@ -152,13 +152,13 @@ Vue.component("card", {
   props: ["cardid", "imgurl", "uploaded"],
   data: function () {
     return {
-      imageUploaded: true, // This is inverted.
+      imageUploaded: false,
     };
   },
   template: `<div :data-id=cardid class='text-center'>
               <img :src=imgurl class='card-img memory-card' />
-              <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: this.imageUploaded }" type='button' aria-label='Close' class='btn-close'></button>
-              <beat-loader :loading=this.imageUploaded style="margin: 8px;"></beat-loader>
+              <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: !this.imageUploaded }" type='button' aria-label='Close' class='btn-close'></button>
+              <beat-loader :loading=!this.imageUploaded style="margin: 8px;"></beat-loader>
             </div>`,
   components: {
     BeatLoader, // Spinner used to represent when an image being uploaded.
