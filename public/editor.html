@@ -25,13 +25,13 @@
   </head>
   <body class="bg-light">
     <div id="editorApp">
-      <top-nav @upload-photo="cropPhoto" :title="this.titleText" :editing="this.mode" :numimages="0" :numrequired="2"></top-nav>
+      <top-nav @upload-photo="cropPhoto" @cancel-photo="cancelImage" :title="this.titleText" :editing="this.mode" :numimages="Object.keys(this.croppedImages).length" :numrequired="this.numRequired"></top-nav>
       <div v-bind:class="{ view: this.mode == 'CROP' }" id="editor">
         <img id="viewer" width="300" height="auto" />
-        <div id="uploadMsg">Upload a File to Start Cropping</div>
+        <div id="uploadMsg" v-bind:class="{ hide: Object.keys(this.croppedImages).length != 0 }">Upload a File to Start Cropping</div>
       </div>
-      <card-display ></card-display>
-    <bottom-nav :editing="this.mode"></bottom-nav>
+      <card-display v-bind:class="{ hide: this.mode == 'CROP' }" :cards="this.croppedImages"></card-display>
+    <bottom-nav :editing="this.mode" @save-crop="addImage"></bottom-nav>
     </div>
     <script src="manager.js"></script>
     <script src="editor.js"></script>

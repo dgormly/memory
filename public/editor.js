@@ -3,7 +3,6 @@ let BeatLoader = VueSpinner.BeatLoader;
 let originalImages = {}; // Object containing the original images as B64.
 let currentImage = null; // The current image that is being edited.
 let bgImages = {};
-let cropped = {};
 let countID = Math.round(Math.random() * 100000); // The image ID counter each image is assigned when created.
 let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
@@ -32,9 +31,9 @@ Vue.component("top-nav", {
           <input id="imageInput" type="file" @change="setImage" />
           <button
             class="btn btn-success"
-            @click="onClick()"
+            @click="addPhoto()"
             v-bind:class="{
-              hide: editing != 'CARDS'
+              hide: editing != 'CARDS' || numimages == numrequired
             }"
           >
             Add a Photo!
@@ -45,7 +44,7 @@ Vue.component("top-nav", {
             <button
               id="cancelBtn"
               class="btn btn-secondary"
-              onclick="cancelImage()"
+              @click="cancelPhoto()"
             >
               Cancel
             </button>
@@ -77,8 +76,11 @@ Vue.component("top-nav", {
       </nav>
   `,
   methods: {
-    onClick() {
+    addPhoto() {
       document.getElementById("imageInput").click();
+    },
+    cancelPhoto() {
+      this.$emit("cancel-photo");
     },
     setImage(event) {
       titleText = cropText;
@@ -103,7 +105,7 @@ Vue.component("bottom-nav", {
           <button
             class="btn btn-outline-danger"
             v-on:click="clearPhotos"
-            v-bind:class="{ hidden: editing != 'CARDS' }"
+            v-bind:class="{ hidden: editing == 'CROP' }"
           >
             Clear Photos
           </button>
@@ -123,7 +125,7 @@ Vue.component("bottom-nav", {
             <button
               id="addBtn"
               class="btn btn-success"
-              onclick="addImage()"
+              @click="saveCrop()"
               v-bind:class="{ 
                 hide: editing != 'CROP'
               }"
@@ -138,7 +140,10 @@ Vue.component("bottom-nav", {
     return {};
   },
   methods: {
-    clearPhotos,
+    saveCrop() {
+      this.$emit("save-crop");
+    },
+    clearPhotos
   },
 });
 
@@ -200,21 +205,61 @@ let editorApp = new Vue({
   data: function () {
     return {
       mode: "CARDS",
-      editing: false,
       currentImage: null,
       titleText: titleText,
       backgroundSelect: false,
       numRequired: numRequired,
-      croppedImages: cropped,
+      croppedImages: {},
       backgroundImages: bgImages,
     };
   },
   methods: {
     cropPhoto(image) {
       this.mode = "CROP";
+      this.titleText = cropText;
       document.getElementById("viewer").src = image;
       currentImage = image;
       $("#viewer").croppie(croppieSettings);
+    },
+    cancelImage() {
+      this.mode = 'CARDS';
+      this.titleText = uploadText;
+      $("#viewer").croppie("destroy");
+    
+      if (Object.keys(this.croppedImages).length === numRequired) {
+        titleText = nextText;
+        this.mode = "NEXT";
+      } else {
+        titleText = uploadText;
+      }
+    },
+    addImage() {
+      var that = this;
+      $("#viewer")
+        .croppie("result", {
+          type: "base64",
+          size: "original",
+        })
+        .then((imageBase64) => {
+          that.mode = 'CARDS';
+
+          let image = document.createElement("img");
+          image.src = imageBase64;
+          image.height = 85;
+          image.width = 65;
+          Vue.set(that.croppedImages, countID,imageBase64);
+          countID++;
+          $("#viewer").croppie("destroy");
+    
+          // Change text.
+          if (Object.keys(that.croppedImages).length === numRequired) {
+            that.titleText = nextText;
+            that.mode = "NEXT"; 
+          } else {
+            that.titleText = uploadText;
+          }
+
+        });
     },
     clearPhotos,
   },
@@ -259,48 +304,6 @@ function nextPressed() {
   // Present all the cards of the background textures, backgroundTexturesURL.
   // Show summarise page.
   // Go to payment page.
-}
-
-/**
- * Remove the current image from croppie and cancel the request.
- */
-function cancelImage() {
-  $("#viewer").croppie("destroy");
-  editorApp.editing = false;
-
-  if (Object.keys(editorApp.croppedImages).length === numRequired) {
-    titleText = nextText;
-  } else {
-    titleText = uploadText;
-  }
-}
-
-/**
- * Add the cropped image to the background and upload the image to the server via a HTTP request.
- */
-function addImage() {
-  $("#viewer")
-    .croppie("result", {
-      type: "base64",
-      size: "original",
-    })
-    .then(function (imageBase64) {
-      editorApp.editing = false;
-      let image = document.createElement("img");
-      image.src = imageBase64;
-      image.height = 85;
-      image.width = 65;
-      editorApp.croppedImages[countID] = imageBase64;
-      countID++;
-      $("#viewer").croppie("destroy");
-
-      // Change text.
-      if (Object.keys(editorApp.croppedImages).length === numRequired) {
-        titleText = nextText;
-      } else {
-        titleText = uploadText;
-      }
-    });
 }
 
 /**

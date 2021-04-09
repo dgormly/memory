@@ -42,7 +42,7 @@ padding: 50px;
 font-size: 22px;
 color: #aaa;
 height: 130px;
-border: 1px solid #aaa;
+/*border: 1px solid #aaa; */
 }
 
 #uploadText {
@@ -60,7 +60,7 @@ display: none;
 
 #editor.view > #uploadMsg {
 display: none;
-height: 100px;
+height: 100%;
 }
 
 #editor.view > div.croppie-container {
