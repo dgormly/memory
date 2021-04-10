@@ -143,7 +143,9 @@ Vue.component("bottom-nav", {
     saveCrop() {
       this.$emit("save-crop");
     },
-    clearPhotos
+    clearPhotos() {
+      this.$emit("clear-photos");
+    }
   },
 });
 
@@ -157,26 +159,17 @@ Vue.component("card", {
   },
   template: `<div :data-id=cardid class='text-center'>
               <img :src=imgurl class='card-img memory-card' />
-              <button v-on:click="deleteImage(cardid)"  v-bind:class="{ hide: !this.imageUploaded }" type='button' aria-label='Close' class='btn-close'></button>
-              <beat-loader :loading=!this.imageUploaded style="margin: 8px;"></beat-loader>
+              <button v-on:click="deleteCard(cardid)"  v-bind:class="{ hide: !uploaded }" type='button' aria-label='Close' class='btn-close'></button>
+              <beat-loader :loading=!uploaded style="margin: 8px;"></beat-loader>
             </div>`,
-  components: {
-    BeatLoader, // Spinner used to represent when an image being uploaded.
-  },
-  // When an image is cropped using croppie, upload it to the server and then change the spinner.
-  created: () => {
-    // Upload new photo. TODO pass photo file.
-    let res = uploadNewPhoto();
-
-    if (!res) {
-      console.log("Failed to upload the image.");
-      // TODO convert to failed icon w/ onclick to reupload.
-    } else {
-      console.log("Image successfully uploaded.");
-      // Turn off spinner.
-      imageUploaded = !res;
+  methods: {
+    deleteCard(cardid) {
+      this.$emit("delete-card", cardid);
     }
   },
+  components: {
+    BeatLoader, // Spinner used to represent when an image being uploaded.
+  }
 });
 
 /* Cards component where all cards will be displayed in the app. */
@@ -191,12 +184,18 @@ Vue.component("card-display", {
       v-for="(card, key) in cards"
       v-bind:key="key"
       v-bind:cardid="key"
-      v-bind:imgurl="card"
-      v-bind:uploaded="false"
+      v-bind:imgurl="card.img"
+      v-bind:uploaded="card.uploaded"
       class="thumbnail text-center"
+      @delete-card="deleteCard"
     ></card>
   </div>
   `,
+  methods: {
+    deleteCard(cardid) {
+      this.$emit("delete-image", cardid);
+    }
+  }
 });
 
 /* The main editor Vue App */
@@ -233,35 +232,9 @@ let editorApp = new Vue({
         titleText = uploadText;
       }
     },
-    addImage() {
-      var that = this;
-      $("#viewer")
-        .croppie("result", {
-          type: "base64",
-          size: "original",
-        })
-        .then((imageBase64) => {
-          that.mode = 'CARDS';
-
-          let image = document.createElement("img");
-          image.src = imageBase64;
-          image.height = 85;
-          image.width = 65;
-          Vue.set(that.croppedImages, countID,imageBase64);
-          countID++;
-          $("#viewer").croppie("destroy");
-    
-          // Change text.
-          if (Object.keys(that.croppedImages).length === numRequired) {
-            that.titleText = nextText;
-            that.mode = "NEXT"; 
-          } else {
-            that.titleText = uploadText;
-          }
-
-        });
-    },
+    addImage,
     clearPhotos,
+    deleteImage
   },
   components: {
     BeatLoader, // Image upload spinner
@@ -270,6 +243,47 @@ let editorApp = new Vue({
     this.croppedImages = getCurrentPhotos();
   },
 });
+
+/**
+ * 
+ */
+function addImage() {
+  var that = this;
+  $("#viewer")
+    .croppie("result", {
+      type: "base64",
+      size: "original",
+    })
+    .then((imageBase64) => {
+      that.mode = 'CARDS';
+
+      let image = document.createElement("img");
+      image.src = imageBase64;
+      image.height = 85;
+      image.width = 65;
+      Vue.set(that.croppedImages, countID, {
+        uploaded: false,
+        img: imageBase64
+      });
+
+      $("#viewer").croppie("destroy");
+
+      // TODO upload
+      var result = uploadNewPhoto(countID, imageBase64);
+      var cropResult = that.croppedImages[countID];
+      cropResult.uploaded = result;
+      Vue.set(that.croppedImages, countID, cropResult);
+
+      countID++;
+      // Change text.
+      if (Object.values(that.croppedImages).filter(data => data.uploaded == true).length === numRequired) {
+        that.titleText = nextText;
+        that.mode = "NEXT"; 
+      } else {
+        that.titleText = uploadText;
+      }
+    });
+}
 
 /**
  * Sends a HTTP request to the server to clear all photos associated with the account.
@@ -281,7 +295,7 @@ function clearPhotos() {
   let res = deleteAllPhotos();
   if (res) {
     console.log("Clearing all photos...");
-    editorApp.croppedImages = {};
+    this.croppedImages = {};
     editorApp.$forceUpdate();
     countID = Math.round(Math.random() * 100000);
 
@@ -316,14 +330,7 @@ function deleteImage(id) {
 
   if (res) {
     console.log(`Successfully deleted photo '${id}'.`);
-    delete editorApp.croppedImages[id];
-    editorApp.$forceUpdate();
-
-    if (Object.keys(editorApp.croppedImages).length == numRequired) {
-      titleText = nextText;
-    } else {
-      titleText = uploadText;
-    }
+    Vue.delete(this.croppedImages, id);
   } else {
     console.log(`Request to server failed. Failed to delete photo '${id}'.`);
   }
