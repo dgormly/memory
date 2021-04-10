@@ -9,9 +9,11 @@ margin: 8px;
 }
 
 .thumbnail > img {
+  
 border-radius: 20px;
-border-style: solid;
+/*border-style: solid;
 border-width: medium;
+*/
 }
 
 .thumbnail > button {
