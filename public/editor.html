@@ -28,7 +28,7 @@
       <top-nav @upload-photo="cropPhoto" @cancel-photo="cancelImage" :title="this.titleText" :editing="this.mode" :numimages="Object.keys(this.croppedImages).length" :numrequired="this.numRequired"></top-nav>
       <div v-bind:class="{ view: this.mode == 'CROP' }" id="editor">
         <img id="viewer" width="300" height="auto" />
-        <div id="uploadMsg" v-bind:class="{ hide: Object.keys(this.croppedImages).length != 0 }">Upload a File to Start Cropping</div>
+        <div id="uploadMsg" v-bind:class="{ hide: Object.keys(this.croppedImages).length != 0 }">{{ instructionText }}</div>
       </div>
       <card-display @delete-image="deleteImage" v-bind:class="{ hide: this.mode == 'CROP' }" :cards="this.croppedImages"></card-display>
     <bottom-nav :editing="this.mode" @save-crop="addImage" @clear-photos="clearPhotos"></bottom-nav>
