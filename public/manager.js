@@ -9,6 +9,8 @@
  * @returns {object} key represents the countid and the value is the image src.
  */
 function getBackgroundImages() {
+    // TODO update to correct API
+    console.log("Manager: Getting all card backgrounds.");
     return getCurrentPhotos();
 }
 
@@ -19,6 +21,7 @@ function getBackgroundImages() {
  * @returns {object} key represents the countid and the value is the image src.
  */
 function getCurrentPhotos() {
+    console.log("Manager: Getting all current Photos.");
     return {
         "0": {
             uploaded: true,

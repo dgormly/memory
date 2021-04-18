@@ -29,6 +29,10 @@ margin-top:50px;
   border: 5px solid #198754;
 }
 
+.pointer {
+  cursor: pointer;
+}
+
 .action-bar {
 margin: 8px;
 display: flex; /* establish flex container */

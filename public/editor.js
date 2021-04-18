@@ -7,7 +7,7 @@ let croppedSave = {}; // Cropped images saved when going to next screen.
 let countID = Math.round(Math.random() * 100000); // The image ID counter each image is assigned when created.
 let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
-const numRequired = 2; // The number of images required to be uploaded for the user to be able to select next.
+const numRequired = 32; // The number of images required to be uploaded for the user to be able to select next.
 
 /* Title Text shown at the top of the Vue App */
 let uploadText = "Upload a Memory!";
@@ -174,15 +174,16 @@ Vue.component("card", {
     };
   },
   template: `<div :data-id=cardid class='text-center'>
-              <img :src=imgurl class='card-img memory-card' @click='selectedCard(cardid)' v-bind:class='{ select: selected }' />
+              <img :src=imgurl class='card-img memory-card' @click='selectedCard(mode, cardid)' v-bind:class='{ select: selected, pointer: mode == "BACKGROUND" }' />
               <button v-on:click="deleteCard(cardid)"  v-bind:class="{ hide: !uploaded || mode == 'BACKGROUND' || mode == 'BGSELECTED' }" type='button' aria-label='Close' class='btn-close'></button>
               <beat-loader :loading=!uploaded style="margin: 8px;"></beat-loader>
             </div>`,
   methods: {
-    deleteCard(cardid) {
+    deleteCard(cardid) { // Fire event to delete a card.
       this.$emit("delete-card", cardid);
     },
-    selectedCard(cardid) {
+    selectedCard(mode, cardid) { // Fire event to highlight the selected card.
+      if (mode != "BACKGROUND") return;
       this.$emit("card-selected", cardid);
     },
   },
@@ -216,10 +217,10 @@ Vue.component("card-display", {
   </div>
   `,
   methods: {
-    deleteCard(cardid) {
+    deleteCard(cardid) { // Fire event to delete a card in the editorApp component.
       this.$emit("delete-image", cardid);
     },
-    cardSelected(cardid) {
+    cardSelected(cardid) { // Fire event to highligh the selected background card image.
       this.cardChosen = cardid;
       this.$emit("background-selected", this.cardChosen);
     }
@@ -275,6 +276,10 @@ let editorApp = new Vue({
   },
 });
 
+/**
+ * 
+ * @param {string} cardid - ID of the card background that was selectd.
+ */
 function bgSelected(cardid) {
   this.backgroundId = cardid;
   this.mode = "BGSELECTED";
