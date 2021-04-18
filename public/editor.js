@@ -30,7 +30,7 @@ Vue.component("top-nav", {
   template: `
     <nav class="navbar navbar-dark bg-dark text-end">
         <div class="container-fluid">
-          <input id="imageInput" type="file" @change="setImage" accept="image/x-png,image/gif,image/jpeg"  />
+          <input id="imageInput" type="file" onclick="this.value = null;" @change="setImage" accept="image/x-png,image/gif,image/jpeg"  />
           <button
             class="btn btn-success"
             @click="addPhoto()"
@@ -91,7 +91,7 @@ Vue.component("top-nav", {
     cancelPhoto() {
       this.$emit("cancel-photo");
     },
-    setImage(event) {
+    setImage(event) { // Select the image for croppie to crop.
       titleText = cropText;
       let reader = new FileReader(); // Allow the user to select a photo that they would like to crop.
       let that = this;
