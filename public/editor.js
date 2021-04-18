@@ -3,6 +3,7 @@ let BeatLoader = VueSpinner.BeatLoader;
 let originalImages = {}; // Object containing the original images as B64.
 let currentImage = null; // The current image that is being edited.
 let bgImages = {};
+let croppedSave = {}; // Cropped images saved when going to next screen.
 let countID = Math.round(Math.random() * 100000); // The image ID counter each image is assigned when created.
 let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
@@ -10,10 +11,10 @@ const numRequired = 2; // The number of images required to be uploaded for the u
 
 /* Title Text shown at the top of the Vue App */
 let uploadText = "Upload a Memory!";
-let instructionText = "Upload 32 memories that you would like to play with!"
+let instructionText = "Upload 32 memories that you would like to play with!";
 let cropText = "Crop the Photo to Fit on the Card";
 let nextText = "Press Next to Select a Card Background";
-let backgroundText = "Select a Card Background";
+let backgroundText = "Select a Card Background Image";
 var titleText = uploadText; // Changing this letiable changes the text in the app.
 
 /* The configured croppy default settings for the editor to use. */
@@ -113,7 +114,7 @@ Vue.component("bottom-nav", {
           <button
             class="btn btn-outline-danger"
             v-on:click="clearPhotos"
-            v-bind:class="{ hidden: editing == 'CROP' }"
+            v-bind:class="{ hidden: editing != 'CARDS' }"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="red" class="bi bi-trash-fill" viewBox="0 0 16 16">
   <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1H2.5zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5zM8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5zm3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0z"/>
@@ -125,9 +126,9 @@ Vue.component("bottom-nav", {
               class="btn btn-success"
               data-bs-toggle="modal"
               data-bs-target="#morePhotosModal"
-              onclick="nextPressed()"
+              @click="nextScreen()"
               v-bind:class="{ 
-                hidden: editing != 'NEXT'
+                hidden: editing != 'NEXT' && editing != 'BGSELECTED'
               }"
             >
               Next
@@ -157,38 +158,46 @@ Vue.component("bottom-nav", {
     },
     clearPhotos() {
       this.$emit("clear-photos");
-    }
+    },
+    nextScreen() {
+      this.$emit("next-screen");
+    },
   },
 });
 
 /* Card component used to represent a memory game card. */
 Vue.component("card", {
-  props: ["cardid", "imgurl", "uploaded"],
+  props: ["cardid", "imgurl", "uploaded", "mode", "selected"],
   data: function () {
     return {
       imageUploaded: false,
     };
   },
   template: `<div :data-id=cardid class='text-center'>
-              <img :src=imgurl class='card-img memory-card' />
-              <button v-on:click="deleteCard(cardid)"  v-bind:class="{ hide: !uploaded }" type='button' aria-label='Close' class='btn-close'></button>
+              <img :src=imgurl class='card-img memory-card' @click='selectedCard(cardid)' v-bind:class='{ select: selected }' />
+              <button v-on:click="deleteCard(cardid)"  v-bind:class="{ hide: !uploaded || mode == 'BACKGROUND' || mode == 'BGSELECTED' }" type='button' aria-label='Close' class='btn-close'></button>
               <beat-loader :loading=!uploaded style="margin: 8px;"></beat-loader>
             </div>`,
   methods: {
     deleteCard(cardid) {
       this.$emit("delete-card", cardid);
-    }
+    },
+    selectedCard(cardid) {
+      this.$emit("card-selected", cardid);
+    },
   },
   components: {
     BeatLoader, // Spinner used to represent when an image being uploaded.
-  }
+  },
 });
 
 /* Cards component where all cards will be displayed in the app. */
 Vue.component("card-display", {
-  props: ["cards"],
+  props: ["cards", "mode"],
   data: function () {
-    return {};
+    return {
+      cardChosen: null,
+    };
   },
   template: `
     <div class="text-center">
@@ -198,16 +207,23 @@ Vue.component("card-display", {
       v-bind:cardid="key"
       v-bind:imgurl="card.img"
       v-bind:uploaded="card.uploaded"
+      v-bind:mode="mode"
+      v-bind:selected="cardChosen == key && mode == 'BGSELECTED'"
       class="thumbnail text-center"
       @delete-card="deleteCard"
+      @card-selected="cardSelected"
     ></card>
   </div>
   `,
   methods: {
     deleteCard(cardid) {
       this.$emit("delete-image", cardid);
+    },
+    cardSelected(cardid) {
+      this.cardChosen = cardid;
+      this.$emit("background-selected", this.cardChosen);
     }
-  }
+  },
 });
 
 /* The main editor Vue App */
@@ -222,7 +238,7 @@ let editorApp = new Vue({
       backgroundSelect: false,
       numRequired: numRequired,
       croppedImages: {},
-      backgroundImages: bgImages,
+      backgroundId: null
     };
   },
   methods: {
@@ -234,10 +250,10 @@ let editorApp = new Vue({
       $("#viewer").croppie(croppieSettings);
     },
     cancelImage() {
-      this.mode = 'CARDS';
+      this.mode = "CARDS";
       this.titleText = uploadText;
       $("#viewer").croppie("destroy");
-    
+
       if (Object.keys(this.croppedImages).length === numRequired) {
         titleText = nextText;
         this.mode = "NEXT";
@@ -246,8 +262,10 @@ let editorApp = new Vue({
       }
     },
     addImage,
+    bgSelected,
     clearPhotos,
-    deleteImage
+    deleteImage,
+    nextPressed,
   },
   components: {
     BeatLoader, // Image upload spinner
@@ -257,8 +275,14 @@ let editorApp = new Vue({
   },
 });
 
+function bgSelected(cardid) {
+  this.backgroundId = cardid;
+  this.mode = "BGSELECTED";
+}
+
+
 /**
- * 
+ *
  */
 function addImage() {
   var that = this;
@@ -268,7 +292,7 @@ function addImage() {
       size: "original",
     })
     .then((imageBase64) => {
-      that.mode = 'CARDS';
+      that.mode = "CARDS";
 
       let image = document.createElement("img");
       image.src = imageBase64;
@@ -276,7 +300,7 @@ function addImage() {
       image.width = 65;
       Vue.set(that.croppedImages, countID, {
         uploaded: false,
-        img: imageBase64
+        img: imageBase64,
       });
 
       $("#viewer").croppie("destroy");
@@ -289,9 +313,13 @@ function addImage() {
 
       countID++;
       // Change text.
-      if (Object.values(that.croppedImages).filter(data => data.uploaded == true).length === numRequired) {
+      if (
+        Object.values(that.croppedImages).filter(
+          (data) => data.uploaded == true
+        ).length === numRequired
+      ) {
         that.titleText = nextText;
-        that.mode = "NEXT"; 
+        that.mode = "NEXT";
       } else {
         that.titleText = uploadText;
       }
@@ -325,12 +353,24 @@ function clearPhotos() {
  */
 function nextPressed() {
   // TODO Check that
-  console.log("Moving to background selector.");
-  alert("Moving to background selector.");
-  // Hide the images div
-  // Present all the cards of the background textures, backgroundTexturesURL.
-  // Show summarise page.
-  // Go to payment page.
+  if ((this.mode == "NEXT")) {
+    console.log("Moving to background selector.");
+    bgImages = getBackgroundImages();
+    // Save cropped images.
+    croppedSave = Object.assign({}, this.croppedImages);
+    // Update cropped images to be the background card images.
+    this.croppedImages = bgImages;
+    // Update title text.
+    this.titleText = backgroundText;
+    this.mode = "BACKGROUND";
+    // Force update the UI
+    editorApp.$forceUpdate();
+    // Present all the cards of the background textures, backgroundTexturesURL.
+  } else if ((this.mode == "BGSELECTED")) {
+    // Set background image.
+    selectCardBackground(this.backgroundId)
+    alert("GO TO PAYMENT");
+  }
 }
 
 /**

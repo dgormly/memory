@@ -9,10 +9,7 @@
  * @returns {object} key represents the countid and the value is the image src.
  */
 function getBackgroundImages() {
-    return {
-        "1": "public/images/dp.jpg",
-        "2": "public/images/f1.jpg",
-    };
+    return getCurrentPhotos();
 }
 
 
