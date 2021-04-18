@@ -30,7 +30,7 @@ Vue.component("top-nav", {
   template: `
     <nav class="navbar navbar-dark bg-dark text-end">
         <div class="container-fluid">
-          <input id="imageInput" type="file" @change="setImage" />
+          <input id="imageInput" type="file" @change="setImage" accept="image/x-png,image/gif,image/jpeg"  />
           <button
             class="btn btn-success"
             @click="addPhoto()"
