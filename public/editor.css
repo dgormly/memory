@@ -9,8 +9,9 @@ margin: 8px;
 }
 
 .thumbnail > img {
-  
-border-radius: 20px;
+  box-shadow: 5px 5px 10px #efefef,
+            -5px -5px 10px #a0a0a0;  
+border-radius: 16px;
 /*border-style: solid;
 border-width: medium;
 */

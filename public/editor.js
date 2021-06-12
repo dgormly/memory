@@ -25,10 +25,12 @@ let croppieSettings = {
   enableExif: true,
 };
 
+document.querySelector("#uploadMsg").innerText = instructionText;
+
 Vue.component("top-nav", {
   props: ["title", "editing", "numimages", "numrequired"],
   template: `
-    <nav class="navbar navbar-dark bg-dark text-end">
+    <nav class="navbar navbar-dark bg-dark text-end top-nav fixed-top">
         <div class="container-fluid">
           <input id="imageInput" type="file" onclick="this.value = null;" @change="setImage" accept="image/x-png,image/gif,image/jpeg"  />
           <button
@@ -108,7 +110,7 @@ Vue.component("bottom-nav", {
   template: `
     <nav
         id="bottomActionBar"
-        class="navbar fixed-bottom navbar-dark bg-dark text-end"
+        class="navbar fixed-bottom navbar-dark bg-dark text-end top-nav"
       >
         <div class="container-fluid">
           <button
@@ -201,7 +203,7 @@ Vue.component("card-display", {
     };
   },
   template: `
-    <div class="text-center">
+    <div id="cardDisplay" class="text-center">
     <card
       v-for="(card, key) in cards"
       v-bind:key="key"
@@ -254,6 +256,15 @@ let editorApp = new Vue({
       this.mode = "CARDS";
       this.titleText = uploadText;
       $("#viewer").croppie("destroy");
+      resetCroppieBug();
+
+      // Croppie bug. Fix DOM
+      let viewer = document.querySelector("#viewer");
+      let uploadMsg = document.querySelector("#uploadMsg");
+      let editor = document.querySelector("#editor");
+      editor.innerHTML = "";
+      editor.appendChild(uploadMsg);
+      editor.appendChild(viewer);
 
       if (Object.keys(this.croppedImages).length === numRequired) {
         titleText = nextText;
@@ -272,7 +283,7 @@ let editorApp = new Vue({
     BeatLoader, // Image upload spinner
   },
   async created() {
-    this.croppedImages = getCurrentPhotos();
+    this.croppedImages = await getCurrentPhotos();
   },
 });
 
@@ -285,11 +296,21 @@ function bgSelected(cardid) {
   this.mode = "BGSELECTED";
 }
 
+function resetCroppieBug() {
+        // Croppie bug. Fix DOM
+        let viewer = document.querySelector("#viewer");
+        let uploadMsg = document.querySelector("uploadMsg");
+        let editor = document.querySelector("editor");
+        editor.innerHTML = "";
+        editor.appendChild(uploadMsg);
+        editor.appendChild(viewer);  
+}
+
 
 /**
  *
  */
-function addImage() {
+async function addImage() {
   var that = this;
   $("#viewer")
     .croppie("result", {
@@ -299,25 +320,22 @@ function addImage() {
     .then((imageBase64) => {
       that.mode = "CARDS";
 
-      let image = document.createElement("img");
-      image.src = imageBase64;
-      image.height = 85;
-      image.width = 65;
-      Vue.set(that.croppedImages, countID, {
+      var newCard = {
         uploaded: false,
         img: imageBase64,
-      });
+      };
+
+      Vue.set(that.croppedImages, countID, newCard);
 
       $("#viewer").croppie("destroy");
 
       // TODO upload
-      var result = uploadNewPhoto(countID, imageBase64);
-      var cropResult = that.croppedImages[countID];
-      cropResult.uploaded = result;
-      Vue.set(that.croppedImages, countID, cropResult);
+      var result = uploadNewPhoto(countID, imageBase64).then((res) => {
+        newCard.uploaded = res;
+        Vue.set(that.croppedImages, countID, newCard);
+        countID++;
 
-      countID++;
-      // Change text.
+         // Change text.
       if (
         Object.values(that.croppedImages).filter(
           (data) => data.uploaded == true
@@ -328,6 +346,16 @@ function addImage() {
       } else {
         that.titleText = uploadText;
       }
+      });
+        
+
+      // Croppie bug. Fix DOM
+      let viewer = document.querySelector("#viewer");
+      let uploadMsg = document.querySelector("#uploadMsg");
+      let editor = document.querySelector("#editor");
+      editor.innerHTML = "";
+      editor.appendChild(uploadMsg);
+      editor.appendChild(viewer);
     });
 }
 
@@ -366,10 +394,7 @@ function nextPressed() {
     // Update cropped images to be the background card images.
     this.croppedImages = bgImages;
     // Update title text.
-    this.titleText = backgroundText;
-    this.mode = "BACKGROUND";
-    // Force update the UI
-    editorApp.$forceUpdate();
+    window.location.pathname = "create/backgrounds/all/";
     // Present all the cards of the background textures, backgroundTexturesURL.
   } else if ((this.mode == "BGSELECTED")) {
     // Set background image.
