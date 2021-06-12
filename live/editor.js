@@ -4,7 +4,6 @@ let originalImages = {}; // Object containing the original images as B64.
 let currentImage = null; // The current image that is being edited.
 let bgImages = {};
 let croppedSave = {}; // Cropped images saved when going to next screen.
-let countID = Math.round(Math.random() * 100000); // The image ID counter each image is assigned when created.
 let imageCounter = document.getElementById("imageCounter"); // The image counter DOM tag.
 const defaultImageUrl = ""; // The default image URL used for the background image.
 const numRequired = 32; // The number of images required to be uploaded for the user to be able to select next.
@@ -12,8 +11,8 @@ const numRequired = 32; // The number of images required to be uploaded for the 
 /* Title Text shown at the top of the Vue App */
 let uploadText = "Upload a Memory!";
 let instructionText = "Upload 32 memories that you would like to play with!";
-let cropText = "Crop the Photo to Fit on the Card";
-let nextText = "Press Next to Select a Card Background";
+let cropText = "Crop the photo to fit on the card";
+let nextText = "Press next to select a card background";
 let backgroundText = "Select a Card Background Image";
 var titleText = uploadText; // Changing this letiable changes the text in the app.
 
@@ -21,9 +20,12 @@ var titleText = uploadText; // Changing this letiable changes the text in the ap
 let croppieSettings = {
   viewport: { height: 425, width: 300, type: "square" },
   enableOrientation: true,
-  showZoomer: false,
+  showZoomer: true,
   enableExif: true,
+  enforceBoundary:false
 };
+
+let croppie;
 
 document.querySelector("#uploadMsg").innerText = instructionText;
 
@@ -72,7 +74,7 @@ Vue.component("top-nav", {
           >
           <button
             id="rotateBtn"
-            onclick="$('#viewer').croppie('rotate', 90)"
+            onclick="croppie.rotate(90)"
             class="btn btn-light"
             v-bind:class="{ 
               hide: editing != 'CROP'
@@ -92,6 +94,9 @@ Vue.component("top-nav", {
     },
     cancelPhoto() {
       this.$emit("cancel-photo");
+    },
+    rotateImage() {
+
     },
     setImage(event) { // Select the image for croppie to crop.
       titleText = cropText;
@@ -169,25 +174,38 @@ Vue.component("bottom-nav", {
 
 /* Card component used to represent a memory game card. */
 Vue.component("card", {
-  props: ["cardid", "imgurl", "uploaded", "mode", "selected"],
+  props: ["cardid", "imgurl", "uploaded", "uploadError", "deleteError", "mode", "selected"],
   data: function () {
     return {
       imageUploaded: false,
+      imageLoading: true
     };
   },
   template: `<div :data-id=cardid class='text-center'>
-              <img :src=imgurl class='card-img memory-card' @click='selectedCard(mode, cardid)' v-bind:class='{ select: selected, pointer: mode == "BACKGROUND" }' />
-              <button v-on:click="deleteCard(cardid)"  v-bind:class="{ hide: !uploaded || mode == 'BACKGROUND' || mode == 'BGSELECTED' }" type='button' aria-label='Close' class='btn-close'></button>
-              <beat-loader :loading=!uploaded style="margin: 8px;"></beat-loader>
+              <img alt="Card Loading" loading="lazy" @load='loadingImage()' :src=imgurl class='card-img memory-card' @click='selectedCard(mode, cardid)' v-bind:class='{ select: selected, pointer: mode == "BACKGROUND" }' />
+              <div class="uploadError" @click="retryUpload(cardid)" v-bind:class="{ hide: !uploadError }">
+                <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 0 24 24" width="32px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 12c0 2.21.91 4.2 2.36 5.64L3 20h6v-6l-2.24 2.24C5.68 15.15 5 13.66 5 12c0-2.61 1.67-4.83 4-5.65V4.26C5.55 5.15 3 8.27 3 12zm8 5h2v-2h-2v2zM21 4h-6v6l2.24-2.24C18.32 8.85 19 10.34 19 12c0 2.61-1.67 4.83-4 5.65v2.09c3.45-.89 6-4.01 6-7.74 0-2.21-.91-4.2-2.36-5.64L21 4zm-10 9h2V7h-2v6z"/></svg>
+              </div>
+              <div class="uploadError" @click="deleteCard(cardid)" v-bind:class="{ hide: !deleteError }">
+              <svg xmlns="http://www.w3.org/2000/svg" height="32px" viewBox="0 0 24 24" width="32px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M3 12c0 2.21.91 4.2 2.36 5.64L3 20h6v-6l-2.24 2.24C5.68 15.15 5 13.66 5 12c0-2.61 1.67-4.83 4-5.65V4.26C5.55 5.15 3 8.27 3 12zm8 5h2v-2h-2v2zM21 4h-6v6l2.24-2.24C18.32 8.85 19 10.34 19 12c0 2.61-1.67 4.83-4 5.65v2.09c3.45-.89 6-4.01 6-7.74 0-2.21-.91-4.2-2.36-5.64L21 4zm-10 9h2V7h-2v6z"/></svg>
+            </div>
+              <button v-on:click="deleteCard(cardid)"  v-bind:class="{ hide: !uploaded || uploadError || deleteError || this.imageLoading || mode == 'BACKGROUND' || mode == 'BGSELECTED' }" type='button' aria-label='Close' class='btn-close'></button>
+              <beat-loader :loading="!uploaded || this.imageLoading" style="margin: 8px;"></beat-loader>
             </div>`,
   methods: {
     deleteCard(cardid) { // Fire event to delete a card.
       this.$emit("delete-card", cardid);
     },
+    retryUpload(cardid) {
+      this.$emit("retry-upload", cardid);
+    },
     selectedCard(mode, cardid) { // Fire event to highlight the selected card.
       if (mode != "BACKGROUND") return;
       this.$emit("card-selected", cardid);
     },
+    loadingImage() {
+      this.imageLoading = false;
+    }
   },
   components: {
     BeatLoader, // Spinner used to represent when an image being uploaded.
@@ -206,26 +224,36 @@ Vue.component("card-display", {
     <div id="cardDisplay" class="text-center">
     <card
       v-for="(card, key) in cards"
-      v-bind:key="key"
-      v-bind:cardid="key"
+      v-bind:key="card.id"
+      v-bind:cardid="card.id"
       v-bind:imgurl="card.img"
+      v-bind:uploadError="card.uploadError || false"
+      v-bind:deleteError="card.deleteError || false"
       v-bind:uploaded="card.uploaded"
       v-bind:mode="mode"
-      v-bind:selected="cardChosen == key && mode == 'BGSELECTED'"
+      v-bind:selected="cardChosen == card.id && mode == 'BGSELECTED'"
       class="thumbnail text-center"
       @delete-card="deleteCard"
+      @retry-upload="retryUpload"
       @card-selected="cardSelected"
     ></card>
   </div>
   `,
   methods: {
+    async retryUpload(cardid) {
+      this.cards[cardid].uploaded = false;
+      uploadNewPhoto(cardid, this.cards[cardid].img).then((res) => {
+        this.cards[cardid].uploaded = true;
+        this.cards[cardid].uploadError = !res;
+      });
+    },
     deleteCard(cardid) { // Fire event to delete a card in the editorApp component.
       this.$emit("delete-image", cardid);
     },
     cardSelected(cardid) { // Fire event to highligh the selected background card image.
       this.cardChosen = cardid;
       this.$emit("background-selected", this.cardChosen);
-    }
+    },
   },
 });
 
@@ -241,30 +269,26 @@ let editorApp = new Vue({
       backgroundSelect: false,
       numRequired: numRequired,
       croppedImages: {},
-      backgroundId: null
+      backgroundId: null,
+      croppie: null
     };
   },
   methods: {
     cropPhoto(image) {
       this.mode = "CROP";
       this.titleText = cropText;
-      document.getElementById("viewer").src = image;
       currentImage = image;
-      $("#viewer").croppie(croppieSettings);
+
+      this.croppie.bind({
+        url: image,
+        zoom: 0.5
+      });
     },
     cancelImage() {
       this.mode = "CARDS";
       this.titleText = uploadText;
-      $("#viewer").croppie("destroy");
-      resetCroppieBug();
-
-      // Croppie bug. Fix DOM
-      let viewer = document.querySelector("#viewer");
-      let uploadMsg = document.querySelector("#uploadMsg");
-      let editor = document.querySelector("#editor");
-      editor.innerHTML = "";
-      editor.appendChild(uploadMsg);
-      editor.appendChild(viewer);
+      //this.croppie.destroy();
+      //resetCroppieBug();
 
       if (Object.keys(this.croppedImages).length === numRequired) {
         titleText = nextText;
@@ -278,12 +302,32 @@ let editorApp = new Vue({
     clearPhotos,
     deleteImage,
     nextPressed,
+    sortObj(obj) {
+      return Object.keys(obj).sort().reverse().reduce(function (result, key) {
+        result[key] = obj[key];
+        return result;
+      }, {});
+    }
+  },
+  computed: {
+    orderedImages: {
+      get () {
+        return this.sortObj(this.croppedImages);
+      },
+
+      set (val) {
+        this.croppedImages[val.id] = val;
+      }
+    },
   },
   components: {
     BeatLoader, // Image upload spinner
   },
   async created() {
     this.croppedImages = await getCurrentPhotos();
+    let el = document.getElementById("viewer");
+    this.croppie = new Croppie(el, croppieSettings);
+    croppie = this.croppie; // Turns out I need it to be global.
   },
 });
 
@@ -299,8 +343,8 @@ function bgSelected(cardid) {
 function resetCroppieBug() {
         // Croppie bug. Fix DOM
         let viewer = document.querySelector("#viewer");
-        let uploadMsg = document.querySelector("uploadMsg");
-        let editor = document.querySelector("editor");
+        let uploadMsg = document.querySelector("#uploadMsg");
+        let editor = document.querySelector("#editor");
         editor.innerHTML = "";
         editor.appendChild(uploadMsg);
         editor.appendChild(viewer);  
@@ -312,50 +356,40 @@ function resetCroppieBug() {
  */
 async function addImage() {
   var that = this;
-  $("#viewer")
-    .croppie("result", {
+  this.croppie.result({
       type: "base64",
       size: "original",
     })
     .then((imageBase64) => {
       that.mode = "CARDS";
+      const timestamp = new Date().getTime();
 
-      var newCard = {
+    var newCard = {
+        id: timestamp,
         uploaded: false,
         img: imageBase64,
       };
 
-      Vue.set(that.croppedImages, countID, newCard);
+      Vue.set(that.croppedImages, timestamp, newCard);
 
-      $("#viewer").croppie("destroy");
+      //this.croppie.destroy();
 
-      // TODO upload
-      var result = uploadNewPhoto(countID, imageBase64).then((res) => {
-        newCard.uploaded = res;
-        Vue.set(that.croppedImages, countID, newCard);
-        countID++;
-
+      // TODO manage result
+      uploadNewPhoto(timestamp, imageBase64).then((res) => {
+        newCard.uploaded = true;
+        newCard.uploadError = !res;
+        Vue.set(that.croppedImages, timestamp, newCard);
          // Change text.
-      if (
-        Object.values(that.croppedImages).filter(
-          (data) => data.uploaded == true
-        ).length === numRequired
-      ) {
-        that.titleText = nextText;
-        that.mode = "NEXT";
-      } else {
-        that.titleText = uploadText;
-      }
+        if (Object.values(that.croppedImages)
+          .filter((data) => data.uploaded == true).length === numRequired) {
+            that.titleText = nextText;
+            that.mode = "NEXT";
+        } else {
+            that.titleText = uploadText;
+        }
       });
         
-
-      // Croppie bug. Fix DOM
-      let viewer = document.querySelector("#viewer");
-      let uploadMsg = document.querySelector("#uploadMsg");
-      let editor = document.querySelector("#editor");
-      editor.innerHTML = "";
-      editor.appendChild(uploadMsg);
-      editor.appendChild(viewer);
+      //resetCroppieBug();
     });
 }
 
@@ -371,8 +405,6 @@ function clearPhotos() {
     console.log("Clearing all photos...");
     this.croppedImages = {};
     editorApp.$forceUpdate();
-    countID = Math.round(Math.random() * 100000);
-
     titleText = nextText;
   } else {
     alert("An error occured attempting to delete the ");
@@ -409,14 +441,20 @@ function nextPressed() {
  * @param {string} id
  */
 function deleteImage(id) {
-  let res = deletePhoto(id);
+  // Turn spinner on
+  this.croppedImages[id].uploaded = false;
 
-  if (res) {
-    console.log(`Successfully deleted photo '${id}'.`);
-    Vue.delete(this.croppedImages, id);
-    this.mode = "CARDS";
-    this.titleText = uploadText;
-  } else {
-    console.log(`Request to server failed. Failed to delete photo '${id}'.`);
-  }
+  deletePhoto(id).then((res) => {
+    this.croppedImages[id].uploaded = true;
+
+    if (res) {
+      console.log(`Successfully deleted photo '${id}'.`);
+      Vue.delete(this.croppedImages, id);
+      this.mode = "CARDS";
+      this.titleText = uploadText;
+    } else {
+      this.croppedImages[id].deleteError = true;
+      console.log(`Request to server failed. Failed to delete photo '${id}'.`);
+    }
+  });
 }

@@ -1,24 +1,43 @@
+html, body, #editorApp {
+  height: calc(100% - 45px);
+}
+
+.top-nav
+ {
+  background-color: #343a40 !important;
+}
+
 body {
   margin-bottom: 75px;
 }
 
 .thumbnail {
-display: inline-block;
-width: 240px;
-margin: 8px;
+  display: inline-block;
+  width: 240px;
+  margin: 8px;
 }
 
 .thumbnail > img {
   box-shadow: 5px 5px 10px #efefef,
             -5px -5px 10px #a0a0a0;  
 border-radius: 16px;
-/*border-style: solid;
-border-width: medium;
-*/
+}
+
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
 }
 
 .thumbnail > button {
 margin: 8px;
+}
+
+input.cr-slider-wrapper {
+  margin: -50px auto;
+}
+
+div.cr-viewport {
+  border-radius: 16px;
 }
 
 #imagesDiv {
@@ -43,16 +62,30 @@ justify-content: space-between; /* switched from default (flex-start, see below)
 }
 
 #editor {
+  margin-top: 56px;
   width: 100%; 
   height: calc(100% - 34px);
 }
 
+.uploadError {
+  margin-top: 6px;
+}
+
+.uploadError > svg {
+  fill: red;
+  cursor: pointer;
+}
+
+#cardDisplay {
+    padding-bottom: 60px;
+}
+
 #editor:not(.view) {
 text-align: center;
-padding: 50px;
+padding: 25px;
 font-size: 22px;
 color: #aaa;
-height: 130px;
+height: auto;
 /*border: 1px solid #aaa; */
 }
 
@@ -71,7 +104,7 @@ display: none;
 
 #editor.view > #uploadMsg {
 display: none;
-height: 100%;
+height: calc(100% - 34px);
 }
 
 #editor.view > div.croppie-container {

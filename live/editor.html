@@ -26,11 +26,6 @@
         const csrftoken = getCookie('csrftoken');
     </script>
     <!-- end csrf goodies -->
-    <script>
-        //const numRequired = 32; // The number of images required to be uploaded for the user to be able to select next.
-        //const numRequired = {{ num_required }}; // The number of images required to be uploaded for the user to be able to select next.
-        //var = numimages = 32;
-    </script>
     <link
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css"
     rel="stylesheet"
@@ -52,7 +47,7 @@ crossorigin="anonymous"
     <!--<script src="/static/node/vue-spinner/dist/vue-spinner.min.js"></script>-->
     <script src="/static/node/vue-spinner/dist/vue-spinner.js"></script>
     <script src="/static/node/croppie/croppie.js"></script>
-    <link rel="stylesheet" href="/static/css/editor.css"/>
+    <link rel="stylesheet" href="/static/css/editor_dg.css"/>
 </head>
 <body class="bg-light">
     <div id="editorApp">
@@ -61,7 +56,7 @@ crossorigin="anonymous"
         <img id="viewer" width="300" height="auto" />
         <div id="uploadMsg" v-bind:class="{ hide: Object.keys(this.croppedImages).length != 0 }"></div>
       </div>
-      <card-display @delete-image="deleteImage" v-bind:class="{ hide: this.mode == 'CROP' }" :cards="this.croppedImages" :mode="this.mode" @background-selected="bgSelected"></card-display>
+      <card-display @delete-image="deleteImage" v-bind:class="{ hide: this.mode == 'CROP' }" :cards="this.orderedImages" :mode="this.mode" @background-selected="bgSelected"></card-display>
     <bottom-nav :editing="this.mode" @save-crop="addImage" @clear-photos="clearPhotos" @next-screen="nextPressed" ></bottom-nav>
     </div>
 <script type="text/javascript" src="/static/js/manager.js"></script>
